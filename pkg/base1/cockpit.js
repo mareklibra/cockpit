@@ -55,6 +55,12 @@ function is_plain_object(x) {
     return is_object(x) && Object.prototype.toString.call(x) === '[object Object]';
 }
 
+/* Also works for negative zero */
+function is_negative(n) {
+    return ((n = +n) || 1 / n) < 0;
+}
+
+/* Object.assign() workalike */
 function extend(to/* , from ... */) {
     var j, len, key, from;
     for (j = 1, len = arguments.length; j < len; j++) {
@@ -881,20 +887,6 @@ function resolve_path_dots(parts) {
 
 function basic_scope(cockpit, jquery) {
 
-    /* If jquery is available use it for now
-     * since it returns 0 durning testing to
-     * make tests stable
-     */
-    var now_func = function () {
-        return new Date().getTime();
-    };
-
-    if (jquery) {
-        now_func = function () {
-            return jquery.now();
-        };
-    }
-
     cockpit.channel = function channel(options) {
         return new Channel(options);
     };
@@ -1042,6 +1034,255 @@ function basic_scope(cockpit, jquery) {
         uri: calculate_url,
     };
 
+
+    /* ------------------------------------------------------------------------------------
+     * Promises.
+     * Based on Q and angular promises, with some jQuery compatibility. See the angular
+     * license in COPYING.bower for license lineage. There are some key differences with
+     * both Q and jQuery.
+     *
+     *  * Exceptions thrown in handlers are not treated as rejections or failures.
+     *    Exceptions remain actual exceptions.
+     *  * Unlike jQuery callbacks added to an already completed promise don't execute
+     *    immediately. Wait until control is returned to the browser.
+     */
+
+    function promise_then(state, fulfilled, rejected, updated) {
+        if (fulfilled === undefined && rejected === undefined && updated === undefined)
+            return null;
+        var result = new Deferred();
+        state.pending = state.pending || [];
+        state.pending.push([result, fulfilled, rejected, updated]);
+        if (state.status > 0)
+            schedule_process_queue(state);
+        return result.promise;
+    }
+
+    function create_promise(state) {
+
+        /* Like jQuery the promise object is callable */
+        var self = function Promise(target) {
+            if (target) {
+                extend(target, self);
+                return target;
+            }
+            return self;
+        };
+
+        state.status = 0;
+
+        self.then = function then(fulfilled, rejected, updated) {
+            return promise_then(state, fulfilled, rejected, updated) || self;
+        };
+
+        self["catch"] = function catch_(callback) {
+            return promise_then(state, null, callback) || self;
+        };
+
+        self["finally"] = function finally_(callback, updated) {
+            return promise_then(state, function() {
+                return handle_callback(arguments, true, callback);
+            }, function() {
+                return handle_callback(arguments, false, callback);
+            }, updated) || self;
+        };
+
+        /* Basic jQuery Promise compatibility */
+        self.done = function done(fulfilled) {
+            promise_then(state, fulfilled);
+            return self;
+        };
+
+        self.fail = function fail(rejected) {
+            promise_then(state, null, rejected);
+            return self;
+        };
+
+        self.always = function always(callback) {
+            promise_then(state, callback, callback);
+            return self;
+        };
+
+        self.progress = function progress(updated) {
+            promise_then(state, null, null, updated);
+            return self;
+        };
+
+        self.state = function state_() {
+            if (state.status == 1)
+                return "resolved";
+            if (state.status == 2)
+                return "rejected";
+            return "pending";
+        };
+
+        /* Promises are recursive like jQuery */
+        self.promise = self;
+
+        return self;
+    }
+
+    function process_queue(state) {
+        var fn, deferred, pending;
+
+        pending = state.pending;
+        state.process_scheduled = false;
+        state.pending = undefined;
+        for (var i = 0, ii = pending.length; i < ii; ++i) {
+            state.pur = true;
+            deferred = pending[i][0];
+            fn = pending[i][state.status];
+            if (is_function(fn)) {
+                deferred.resolve(fn.apply(state.promise, state.values));
+            } else if (state.status === 1) {
+                deferred.resolve.apply(deferred.resolve, state.values);
+            } else {
+                deferred.reject.apply(deferred.reject, state.values);
+            }
+        }
+    }
+
+    function schedule_process_queue(state) {
+        if (state.process_scheduled || !state.pending)
+            return;
+        state.process_scheduled = true;
+        window.setTimeout(function() {
+            process_queue(state);
+        }, 0);
+    }
+
+    function deferred_resolve(state, values) {
+        var then, done = false;
+        if (is_object(values[0]) || is_function(values[0]))
+            then = values[0] && values[0].then;
+        if (is_function(then)) {
+            state.status = -1;
+            then.call(values, function(/* ... */) {
+                if (done)
+                    return;
+                done = true;
+                deferred_resolve(state, arguments);
+            }, function(/* ... */) {
+                if (done)
+                    return;
+                done = true;
+                deferred_reject(state, arguments);
+            }, function(/* ... */) {
+                deferred_notify(state, arguments);
+            });
+        } else {
+            state.values = values;
+            state.status = 1;
+            schedule_process_queue(state);
+        }
+    }
+
+    function deferred_reject(state, values) {
+        state.values = values;
+        state.status = 2;
+        schedule_process_queue(state);
+    }
+
+    function deferred_notify(state, values) {
+        var callbacks = state.pending;
+        if ((state.status <= 0) && callbacks && callbacks.length) {
+            window.setTimeout(function() {
+                var callback, result;
+                for (var i = 0, ii = callbacks.length; i < ii; i++) {
+                    result = callbacks[i][0];
+                    callback = callbacks[i][3];
+                    if (is_function(callback))
+                        result.notify(callback.apply(state.promise, values));
+                    else
+                        result.notify.apply(result, values);
+                }
+            }, 0);
+        }
+    }
+
+    function Deferred() {
+        var self = this;
+        var state = { };
+        self.promise = state.promise = create_promise(state);
+
+        self.resolve = function resolve(/* ... */) {
+            if (arguments[0] === state.promise)
+                throw new Error("Expected promise to be resolved with other value than itself");
+            if (!state.status)
+                deferred_resolve(state, arguments);
+            return self;
+        };
+
+        self.reject = function reject(/* ... */) {
+            if (state.status)
+                return;
+            deferred_reject(state, arguments);
+            return self;
+        };
+
+        self.notify = function notify(/* ... */) {
+            deferred_notify(state, arguments);
+            return self;
+        };
+    }
+
+    function prep_promise(values, resolved) {
+        var result = cockpit.defer();
+        if (resolved)
+            result.resolve.apply(result, values);
+        else
+            result.reject.apply(result, values);
+        return result.promise;
+    }
+
+    function handle_callback(values, is_resolved, callback) {
+        var callback_output = null;
+        if (is_function(callback))
+            callback_output = callback();
+        if (callback_output && is_function (callback_output.then)) {
+            return callback_output.then(function() {
+                return prep_promise(values, is_resolved);
+            }, function() {
+                return prep_promise(arguments, false);
+            });
+        } else {
+            return prep_promise(values, is_resolved);
+        }
+    }
+
+    cockpit.when = function when(value, fulfilled, rejected, updated) {
+        var result = cockpit.defer();
+        result.resolve(value);
+        return result.promise.then(fulfilled, rejected, updated);
+    };
+
+    cockpit.all = function all(promises) {
+        var deferred = cockpit.defer();
+        var counter = 0;
+        var results = [];
+
+        if (arguments.length != 1 && !is_array (promises))
+            promises = Array.prototype.slice.call(arguments);
+
+        promises.forEach(function(promise, key) {
+            counter++;
+            cockpit.when(promise).then(function(value) {
+                results[key] = value;
+                if (!(--counter))
+                    deferred.resolve.apply(deferred, results);
+            }, function(/* ... */) {
+                deferred.reject.apply(deferred, arguments);
+            });
+        });
+
+        if (counter === 0)
+            deferred.resolve(results);
+        return deferred.promise;
+    };
+
+    cockpit.defer = function() {
+        return new Deferred();
+    };
 
     /* ---------------------------------------------------------------------
      * Utilities
@@ -1752,11 +1993,6 @@ function basic_scope(cockpit, jquery) {
             self.notify(0, self.end - self.beg);
         };
 
-        /* Also works for negative zero */
-        function is_negative(n) {
-            return ((n = +n) || 1 / n) < 0;
-        }
-
         function move_internal(beg, end, for_walking) {
             if (end === undefined)
                 end = beg + (self.end - self.beg);
@@ -1794,12 +2030,12 @@ function basic_scope(cockpit, jquery) {
             if (beg === undefined) {
                 beg = 0;
             } else if (is_negative(beg)) {
-                now = now_func();
+                now = Date.now();
                 beg = Math.floor(now / self.interval) + beg;
             }
             if (end !== undefined && is_negative(end)) {
                 if (now === null)
-                    now = now_func();
+                    now = Date.now();
                 end = Math.floor(now / self.interval) + end;
             }
 
@@ -1823,14 +2059,14 @@ function basic_scope(cockpit, jquery) {
              *    resulting in the timeout being executed immediately.
              */
 
-            var start = now_func();
+            var start = Date.now();
             if (self.interval > 2000000000)
                 return;
 
             stop_walking();
             offset = start - self.beg * self.interval;
             walking = window.setInterval(function() {
-                var now = now_func();
+                var now = Date.now();
                 move_internal(Math.floor((now - offset) / self.interval), undefined, true);
             }, self.interval);
         };
@@ -1847,10 +2083,10 @@ function basic_scope(cockpit, jquery) {
     cockpit.grid = function grid(interval, beg, end) {
         return new SeriesGrid(interval, beg, end);
     };
-}
 
-
-function full_scope(cockpit, $, po) {
+    /* --------------------------------------------------------------------
+     * Basic utilities.
+     */
 
     function BasicError(problem, message) {
         this.problem = problem;
@@ -2152,7 +2388,7 @@ function full_scope(cockpit, $, po) {
 
     /* public */
     cockpit.spawn = function(command, options) {
-        var dfd = new $.Deferred();
+        var dfd = cockpit.defer();
 
         var args = { "payload": "stream", "spawn": [] };
         if (command instanceof Array) {
@@ -2188,33 +2424,30 @@ function full_scope(cockpit, $, po) {
                 dfd.resolve(data);
         });
 
-        var jpromise = dfd.promise;
-        dfd.promise = function() {
-            return extend(jpromise.apply(this, arguments), {
-                stream: function(callback) {
-                    buffer.callback = callback;
-                    return this;
-                },
-                input: function(message, stream) {
-                    if (message !== null && message !== undefined) {
-                        spawn_debug("process input:", message);
-                        channel.send(message);
-                    }
-                    if (!stream)
-                        channel.control({ command: "done" });
-                    return this;
-                },
-                close: function(problem) {
-                    spawn_debug("process closing:", problem);
-                    if (channel.valid)
-                        channel.close(problem);
-                    return this;
-                },
-                promise: this.promise
-            });
+        var ret = dfd.promise;
+        ret.stream = function(callback) {
+            buffer.callback = callback;
+            return this;
         };
 
-        return dfd.promise();
+        ret.input = function(message, stream) {
+            if (message !== null && message !== undefined) {
+                spawn_debug("process input:", message);
+                channel.send(message);
+            }
+            if (!stream)
+                channel.control({ command: "done" });
+            return this;
+        };
+
+        ret.close = function(problem) {
+            spawn_debug("process closing:", problem);
+            if (channel.valid)
+                channel.close(problem);
+            return this;
+        };
+
+        return ret;
     };
 
     /* public */
@@ -2336,7 +2569,7 @@ function full_scope(cockpit, $, po) {
 
         var valid = false;
         var defined = false;
-        var waits = $.Deferred();
+        var waits = cockpit.defer();
 
         /* No enumeration on these properties */
         Object.defineProperties(self, {
@@ -2347,8 +2580,8 @@ function full_scope(cockpit, $, po) {
             "wait": { enumerable: false, writable: false,
                 value: function(func) {
                     if (func)
-                        waits.always(func);
-                    return waits.promise();
+                        waits.promise.always(func);
+                    return waits.promise;
                 }
             },
             "call": { value: function(name, args) { return client.call(path, iface, name, args); },
@@ -2356,8 +2589,8 @@ function full_scope(cockpit, $, po) {
             "data": { value: { }, enumerable: false }
         });
 
-        if (typeof $ === "function") {
-            Object.defineProperty(self, $.expando, {
+        if (typeof window.$ === "function") {
+            Object.defineProperty(self, window.$.expando, {
                 value: { }, writable: true, enumerable: false
             });
         }
@@ -2380,11 +2613,11 @@ function full_scope(cockpit, $, po) {
                 Object.defineProperty(self, name, {
                     enumerable: false,
                     value: function() {
-                        var dfd = $.Deferred();
+                        var dfd = cockpit.defer();
                         client.call(path, iface, name, Array.prototype.slice.call(arguments)).
                             done(function(reply) { dfd.resolve.apply(dfd, reply); }).
                             fail(function(ex) { dfd.reject(ex); });
-                        return dfd.promise();
+                        return dfd.promise;
                     }
                 });
             });
@@ -2470,13 +2703,13 @@ function full_scope(cockpit, $, po) {
                 value: function(func) {
                     if (func)
                         waits.always(func);
-                    return waits.promise();
+                    return waits;
                 }
             }
         });
 
-        if (typeof $ === "function") {
-            Object.defineProperty(self, $.expando, {
+        if (typeof window.$ === "function") {
+            Object.defineProperty(self, window.$.expando, {
                 value: { }, writable: true, enumerable: false
             });
         }
@@ -2491,8 +2724,7 @@ function full_scope(cockpit, $, po) {
         if (options.watch !== false) {
             waits = client.watch(match);
         } else {
-            waits = $.Deferred();
-            waits.resolve();
+            waits = cockpit.defer().resolve().promise;
         }
 
         /* Already added watch/subscribe, tell proxies not to */
@@ -2678,7 +2910,7 @@ function full_scope(cockpit, $, po) {
         var last_cookie = 1;
 
         this.call = function call(path, iface, method, args, options) {
-            var dfd = $.Deferred();
+            var dfd = cockpit.defer();
             var id = String(last_cookie);
             last_cookie++;
             var method_call = {
@@ -2702,7 +2934,7 @@ function full_scope(cockpit, $, po) {
                 dfd.reject(new DBusError(closed));
             }
 
-            return dfd.promise();
+            return dfd.promise;
         };
 
         this.subscribe = function subscribe(match, callback, rule) {
@@ -2750,7 +2982,7 @@ function full_scope(cockpit, $, po) {
 
             var id = String(last_cookie);
             last_cookie++;
-            var dfd = $.Deferred();
+            var dfd = cockpit.defer();
             calls[id] = dfd;
 
             var msg = JSON.stringify({ "watch": match, "id": id });
@@ -2758,26 +2990,19 @@ function full_scope(cockpit, $, po) {
                 dbus_debug("dbus:", msg);
                 channel.send(msg);
             } else {
-                console.log("rejecting watch with", closed);
                 dfd.reject(new DBusError(closed));
             }
 
-            var jpromise = dfd.promise;
-            dfd.promise = function() {
-                return extend(jpromise.apply(this, arguments), {
-                    remove: function remove() {
-                        delete calls[id];
-                        if (channel && channel.valid) {
-                            msg = JSON.stringify({ "unwatch": match });
-                            dbus_debug("dbus:", msg);
-                            channel.send(msg);
-                        }
-                    },
-                    promise: this.promise
-                });
+            var ret = dfd.promise;
+            ret.remove = function remove() {
+                delete calls[id];
+                if (channel && channel.valid) {
+                    msg = JSON.stringify({ "unwatch": match });
+                    dbus_debug("dbus:", msg);
+                    channel.send(msg);
+                }
             };
-
-            return dfd.promise();
+            return ret;
         };
 
         self.proxy = function proxy(iface, path, options) {
@@ -2863,7 +3088,7 @@ function full_scope(cockpit, $, po) {
             if (read_promise)
                 return read_promise;
 
-            var dfd = $.Deferred();
+            var dfd = cockpit.defer();
             var opts = extend({ }, base_channel_options, {
                 payload: "fsread1",
                 path: path
@@ -2912,14 +3137,14 @@ function full_scope(cockpit, $, po) {
 
             try_read();
 
-            read_promise = dfd.promise();
+            read_promise = dfd.promise;
             return read_promise;
         }
 
         var replace_channel = null;
 
         function replace(new_content, expected_tag) {
-            var dfd = $.Deferred();
+            var dfd = cockpit.defer();
 
             var file_content;
             try {
@@ -2930,7 +3155,7 @@ function full_scope(cockpit, $, po) {
             }
             catch (e) {
                 dfd.reject(e);
-                return dfd.promise();
+                return dfd.promise;
             }
 
             if (replace_channel)
@@ -2973,11 +3198,11 @@ function full_scope(cockpit, $, po) {
             }
 
             replace_channel.control({ command: "done" });
-            return dfd.promise();
+            return dfd.promise;
         }
 
         function modify(callback, initial_content, initial_tag) {
-            var dfd = $.Deferred();
+            var dfd = cockpit.defer();
 
             function update(content, tag) {
                 var new_content = callback(content);
@@ -3008,7 +3233,7 @@ function full_scope(cockpit, $, po) {
             else
                 update(initial_content, initial_tag);
 
-            return dfd.promise();
+            return dfd.promise;
         }
 
         var watch_callbacks = [];
@@ -3277,7 +3502,7 @@ function full_scope(cockpit, $, po) {
         }
 
         self.request = function request(req) {
-            var dfd = new $.Deferred();
+            var dfd = cockpit.defer();
 
             if (!req.path)
                 req.path = "/";
@@ -3381,41 +3606,34 @@ function full_scope(cockpit, $, po) {
 
             channel.addEventListener("close", on_close);
 
-            var jpromise = dfd.promise;
-            dfd.promise = function mypromise() {
-                var ret = extend(jpromise.apply(this, arguments), {
-                    stream: function(callback) {
-                        streamer = callback;
-                        return this;
-                    },
-                    response: function(callback) {
-                        if (responsers === null)
-                            responsers = [];
-                        responsers.push(callback);
-                        return this;
-                    },
-                    input: function(message, stream) {
-                        if (message !== null && message !== undefined) {
-                            http_debug("http input:", message);
-                            channel.send(message);
-                        }
-                        if (!stream) {
-                            http_debug("http done");
-                            channel.control({ command: "done" });
-                        }
-                        return this;
-                    },
-                    close: function(problem) {
-                        http_debug("http closing:", problem);
-                        channel.close(problem);
-                        return this;
-                    },
-                    promise: this.promise
-                });
+            var ret = dfd.promise;
+            ret.stream = function(callback) {
+                streamer = callback;
                 return ret;
             };
-
-            return dfd.promise();
+            ret.response = function(callback) {
+                if (responsers === null)
+                    responsers = [];
+                responsers.push(callback);
+                return ret;
+            };
+            ret.input = function(message, stream) {
+                if (message !== null && message !== undefined) {
+                    http_debug("http input:", message);
+                    channel.send(message);
+                }
+                if (!stream) {
+                    http_debug("http done");
+                    channel.control({ command: "done" });
+                }
+                return ret;
+            };
+            ret.close = function(problem) {
+                http_debug("http closing:", problem);
+                channel.close(problem);
+                return ret;
+            };
+            return ret;
         };
 
         self.get = function get(path, params, headers) {
@@ -3754,7 +3972,7 @@ function full_scope(cockpit, $, po) {
         };
     }
 
-} /* full_scope */
+} /* scope end */
 
 /*
  * Register this script as a module and/or with globals
@@ -3764,18 +3982,10 @@ var cockpit = { };
 event_mixin(cockpit, { });
 
 var basics = false;
-var extra = false;
-
-function factory(jquery) {
+function factory() {
     if (!basics) {
-        basic_scope(cockpit, jquery);
+        basic_scope(cockpit);
         basics = true;
-    }
-    if (!extra) {
-        if (jquery) {
-            full_scope(cockpit, jquery);
-            extra = true;
-        }
     }
     return cockpit;
 }
@@ -3793,15 +4003,15 @@ if (pos !== -1)
 /* cockpit.js is being loaded as a <script>  and no other loader around? */
 if (pos !== -1) {
     self_module_id = last.substring(pos + 1, last.indexOf(".", pos + 1));
-    window.cockpit = factory(window.jQuery);
+    window.cockpit = factory();
 }
 
 /* Cockpit loaded via AMD loader */
-if (typeof define === 'function' && define.amd) {
+if (is_function(window.define) && window.define.amd) {
     if (self_module_id)
-        define(self_module_id, ['jquery'], window.cockpit);
+        define(self_module_id, [], window.cockpit);
     else
-        define(['jquery'], factory);
+        define([], factory);
 }
 
 })();

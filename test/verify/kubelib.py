@@ -53,8 +53,8 @@ class KubernetesCase(MachineCase):
         """ % (port, timeout * 2, scheme)
         self.machine.execute(script=waiter)
 
-class StorageTests(object):
-    def testStorage(self):
+class VolumeTests(object):
+    def testVolumes(self):
         b = self.browser
         m = self.machine
 
@@ -70,16 +70,16 @@ class StorageTests(object):
             m = self.openshift
 
         self.login_and_go("/kubernetes")
-        b.wait_present("#kubernetes-storage")
-        b.click("#kubernetes-storage")
+        b.wait_present("#kubernetes-volumes")
+        b.click("#kubernetes-volumes")
         b.wait_present(".pv-listing")
 
         b.wait_present("#register-volume")
         b.click("#register-volume")
         b.wait_present("modal-dialog")
-        b.click("modal-dialog #storage-type button ")
-        b.click("#storage-type #storage-type-nfs")
-        b.wait_in_text("modal-dialog #storage-type button", "NFS")
+        b.click("modal-dialog #volume-type button ")
+        b.click("#volume-type #volume-type-nfs")
+        b.wait_in_text("modal-dialog #volume-type button", "NFS")
 
         b.set_val("modal-dialog #modify-name", "A Bad Name")
         b.set_val("modal-dialog #modify-capacity", "invalid")
@@ -108,9 +108,9 @@ class StorageTests(object):
 
         b.click("#register-volume")
         b.wait_present("modal-dialog")
-        b.click("modal-dialog #storage-type button ")
-        b.click("#storage-type #storage-type-hostPath")
-        b.wait_in_text("modal-dialog #storage-type button", "Host Path")
+        b.click("modal-dialog #volume-type button ")
+        b.click("#volume-type #volume-type-hostPath")
+        b.wait_in_text("modal-dialog #volume-type button", "Host Path")
 
         b.set_val("modal-dialog #modify-name", "pv2")
         b.set_val("modal-dialog #modify-capacity", pv2_size)
@@ -202,9 +202,17 @@ class StorageTests(object):
         b.wait_in_text(".listing-body div[data-id='host-tmp']", "mock-volume-claim")
         b.wait_in_text(".listing-body div[data-id='host-tmp']", "mock-volume-container")
         b.wait_in_text(".listing-body div[data-id='host-tmp']", "/mount-path-tmp")
-        b.wait_present(".listing-body div[data-id='host-tmp'] a[href='#/storage/{}']".format(pv_id))
+        b.wait_present(".listing-body div[data-id='host-tmp'] a[href='#/volumes/{}']".format(pv_id))
 
-class KubernetesCommonTests(StorageTests):
+class KubernetesCommonTests(VolumeTests):
+
+    def add_node(self, b, name, address):
+        b.wait_present("modal-dialog")
+        b.set_val("#node-name", name)
+        b.set_val("#node-address", address)
+        b.click("modal-dialog .btn-primary")
+        b.wait_not_present("modal-dialog .dialog-wait")
+        b.wait_not_present("modal-dialog")
 
     def check_logs(self, b):
         # Check that container log output shows up
@@ -311,14 +319,8 @@ class KubernetesCommonTests(StorageTests):
 
         # Successfully add node via dialog
         b.click("#add-node")
-        b.wait_present("modal-dialog")
-        b.set_val("#node-name", "mynode")
-        b.set_val("#node-address", "myaddress")
-        b.click("modal-dialog .btn-primary")
-        b.wait_not_present("modal-dialog .dialog-wait")
-        b.wait_not_present("modal-dialog")
+        self.add_node(b, "mynode", "myaddress")
         b.wait_in_text("#node-list", "mynode")
-        b.wait_in_text("#node-list", "myaddress")
 
         # Fail add node via dialog
         b.click("#add-node")
@@ -363,19 +365,6 @@ class KubernetesCommonTests(StorageTests):
         self.assertEqual(b.text(".details-listing tbody[data-id='replicationcontrollers/default/mock'] th"), "mock")
         b.wait_not_present("#routes")
         b.wait_not_present("#deployment-configs")
-
-        # Click nodes
-        b.click(".details-listing tbody[data-id='nodes/127.0.0.1'] th")
-        b.wait_present(".details-listing tbody[data-id='nodes/127.0.0.1'] tr.listing-panel")
-        self.assertEqual(b.text("tbody[data-id='nodes/127.0.0.1'] tr.listing-panel h3"), "127.0.0.1")
-        self.assertFalse(b.is_visible(".details-listing tbody[data-id='nodes/127.0.0.1'] th"))
-        b.wait_in_text("tbody[data-id='nodes/127.0.0.1'] tr.listing-panel .status", "Ready")
-
-        b.click(".details-listing tbody[data-id='nodes/mynode'] th")
-        b.wait_present(".details-listing tbody[data-id='nodes/mynode'] tr.listing-panel")
-        self.assertEqual(b.text("tbody[data-id='nodes/mynode'] tr.listing-panel h3"), "mynode")
-        self.assertFalse(b.is_visible(".details-listing tbody[data-id='nodes/mynode'] th"))
-        self.assertEqual(b.text("tbody[data-id='nodes/mynode'] tr.listing-panel .status").strip(), "Unknown")
 
         # Click on the service to expand into a panel
         b.click(".details-listing tbody[data-id='services/default/mock'] th")
@@ -433,6 +422,51 @@ class KubernetesCommonTests(StorageTests):
         b.wait_js_cond('window.location.hash == "#/?namespace=mynamespace2"')
         b.wait_in_text(".namespace-filter button", "mynamespace2")
 
+    def testNodes(self):
+        m = self.machine
+        b = self.browser
+
+        self.login_and_go("/kubernetes")
+        b.wait_present("#node-list")
+        b.wait_in_text("#node-list", "127.0.0.1")
+
+        b.click("#node-list tbody tr:first-child")
+
+        b.wait_present(".listing-inline")
+        b.wait_in_text(".listing-inline", "Node")
+        b.wait_in_text(".listing-inline", "Capacity")
+        b.wait_present(".content-filter h3")
+        b.wait_text(".content-filter h3", "127.0.0.1")
+        b.click("a.hidden-xs")
+
+        b.wait_present(".nodes-listing")
+        b.wait_present("#add-node")
+        b.click("#add-node")
+        self.add_node(b, "mynode", "myaddress")
+        b.wait_present(".nodes-listing tbody[data-id='mynode']")
+        b.click(".nodes-listing tbody[data-id='mynode'] tr")
+        b.wait_present(".content-filter h3")
+        b.wait_text(".content-filter h3", "mynode")
+        b.click("a.hidden-xs")
+
+        b.wait_present(".nodes-listing")
+        b.click(".filter-menu button.dropdown-toggle")
+        b.click(".filter-menu li:first-child a")
+
+        b.wait_present(".nodes-listing tbody[data-id='127.0.0.1']")
+        b.click(".nodes-listing tbody[data-id='127.0.0.1'] th")
+        b.wait_present(".nodes-listing tbody[data-id='127.0.0.1'] tr.listing-panel")
+        self.assertEqual(b.text("tbody[data-id='127.0.0.1'] tr.listing-panel h3"), "127.0.0.1")
+        self.assertFalse(b.is_visible(".nodes-listing tbody[data-id='127.0.0.1'] th"))
+        b.wait_in_text("tbody[data-id='127.0.0.1'] tr.listing-panel .status", "Ready")
+
+        b.wait_present(".nodes-listing tbody[data-id='mynode']")
+        b.click(".nodes-listing tbody[data-id='mynode'] th")
+        b.wait_present(".nodes-listing tbody[data-id='mynode'] tr.listing-panel")
+        self.assertEqual(b.text("tbody[data-id='mynode'] tr.listing-panel h3"), "mynode")
+        self.assertFalse(b.is_visible(".nodes-listing tbody[data-id='mynode'] th"))
+        self.assertEqual(b.text("tbody[data-id='mynode'] tr.listing-panel .status").strip(), "Unknown")
+
     def testTopology(self):
         m = self.machine
         b = self.browser
@@ -451,7 +485,7 @@ class KubernetesCommonTests(StorageTests):
         # Assert that at least one link between Service and Pod has loaded
         b.wait_present("svg line.ServicePod")
 
-class OpenshiftCommonTests(StorageTests):
+class OpenshiftCommonTests(VolumeTests):
 
     def testBasic(self):
         m = self.machine

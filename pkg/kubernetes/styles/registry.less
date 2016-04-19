@@ -1,23 +1,18 @@
-@import "variables-bootstrap.less";
-@import "variables-patternfly.less";
+@import "variables.less";
 
-@sidebar-width: 100;
-@sidebar-pf-bg: #f2f2f2;
-@listing-hover: @list-group-hover-bg;
-@metadata-color: #888;
-@command-bg-color: #eee;
+/* Depends on number of items in the sidebar */
+@sidebar-height-lg: 250px;
 
 @import "sidebar.less";
 @import "filter.less";
 @import "dropdown.less";
-
+@import "dashboard.less";
 
 @import "images.less";
 @import "layers.less";
 @import "projects.less";
 
 #content {
-    margin-left: unit(@sidebar-width + 10, px);
     margin-right: 0px;
     min-height: 100%;
 }
@@ -28,46 +23,8 @@
 
 /* Registry dashboard */
 
-.container-cards-pf {
-    display: flex;
-    margin-top: 10px;
-}
-
-.card-pf {
-    flex-grow: 1;
-    margin: 10px;
-    display: flex;
-    flex-direction: column;
-    flex-basis: 25%;
-}
-
-.card-pf-wide {
-    flex-basis: ~"calc(75% + 20px)";
-}
-
-.card-pf-heading {
-    margin-bottom: 0px;
-
-    i {
-        font-size: 24px;
-        line-height: 16px;
-        vertical-align: top;
-        padding-right: 5px;
-    }
-}
-
 .card-pf-utilization .card-pf-title {
     line-height: 1.1;
-}
-
-.card-pf-footer {
-    min-height: 5em;
-}
-
-.dashboard-cards {
-    width: 100%;
-    max-width: 1024px;
-
 }
 
 .dashboard-storage {
@@ -79,10 +36,8 @@
 
 .dashboard-images {
     .card-pf-body {
-        margin-top: 10px;
-        padding-bottom: 0px;
-        margin-bottom: auto;
         min-height: 220px;
+        padding-bottom: 0px;
 
         div {
             padding: 7px 10px 10px 10px;
@@ -174,7 +129,3 @@
     border: none;
 }
 
-.card-pf-body.blank-slate-pf {
-    background: transparent;
-    padding-top: 20px;
-}

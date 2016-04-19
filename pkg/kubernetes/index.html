@@ -48,6 +48,7 @@ along with Cockpit; If not, see <http://www.gnu.org/licenses/>.
   <script src="scripts/dialog.js"></script>
   <script src="scripts/listing.js"></script>
   <script src="scripts/dashboard.js"></script>
+  <script src="scripts/nodes.js"></script>
   <script src="scripts/containers.js"></script>
   <script src="scripts/details.js"></script>
   <script src="scripts/topology.js"></script>
@@ -56,54 +57,67 @@ along with Cockpit; If not, see <http://www.gnu.org/licenses/>.
   <script src="scripts/images.js"></script>
   <script src="scripts/policy.js"></script>
   <script src="scripts/projects.js"></script>
-  <script src="scripts/storage.js"></script>
+  <script src="scripts/volumes.js"></script>
   <!-- debug:end -->
 
 </head>
 <body ng-app='kubernetes' ng-controller="MainCtrl" ng-class="{'cards-pf': viewActive(null)}" hidden>
     <div ng-cloak ng-if="!curtains">
-      <div class="icon-sidebar">
-        <div>
-          <ul>
-            <li ng-class="{ active: viewActive(null)}">
-              <a ng-href="#{{ viewUrl(null) }}">
-                <i class="fa fa-dashboard fa-fw"></i><br>Overview
-              </a>
-            </li>
-            <li ng-class="{ active: viewActive('pods')}">
-              <a ng-href="#{{ viewUrl('pods') }}">
-                <i class="fa fa-cubes fa-fw"></i><br>Containers
-              </a>
-            </li>
-            <li ng-class="{ active: viewActive('topology')}">
-              <a ng-href="#{{ viewUrl('topology') }}">
-                <i class="pficon pficon-topology fa-fw"></i><br>Topology
-              </a>
-            </li>
-            <li ng-class="{ active: viewActive('list')}">
-              <a ng-href="#{{ viewUrl('list') }}">
-                <i class="fa fa-list fa-fw"></i><br>Details
-              </a>
-            </li>
-            <li ng-if="settings.isAdmin" ng-class="{ active: viewActive('storage')}">
-                <!-- Directly to avoid any namespace filtering -->
-                <a id="kubernetes-storage" ng-href="#/storage">
-                    <i class="fa fa-database fa-fw"></i><br>Storage
-                </a>
-            </li>
-            <li ng-class="{ active: viewActive('images')}" ng-if="settings.flavor == 'openshift'">
-                <a ng-href="#{{ viewUrl('images') }}">
-                    <i class="pficon pficon-image fa-fw"></i><br>Images
-                </a>
-            </li>
-            <li ng-class="{ active: viewActive('projects')}" ng-if="settings.flavor == 'openshift'">
-                <a ng-href="#{{ viewUrl('projects') }}">
-                    <i class="pficon pficon-project fa-fw"></i><br>Projects
-                </a>
-            </li>
-          </ul>
+        <div class="nav-pf-vertical icon-sidebar">
+            <ul class="list-group">
+                <li class="list-group-item" ng-class="{ active: viewActive(null)}">
+                    <a ng-href="#{{ viewUrl(null) }}">
+                        <i class="fa fa-dashboard fa-fw" title="Overview"></i>
+                        <span class="list-group-item-value" translatable="yes">Overview</span>
+                    </a>
+                </li>
+                <li class="list-group-item" ng-class="{ active: viewActive('nodes')}">
+                    <a ng-href="#/nodes">
+                        <i class="pficon pficon-container-node" title="Nodes"></i>
+                        <span class="list-group-item-value" translatable="yes">Nodes</span>
+                    </a>
+                </li>
+                <li class="list-group-item" ng-class="{ active: viewActive('pods')}">
+                    <a ng-href="#{{ viewUrl('pods') }}">
+                        <i class="fa fa-cubes fa-fw" title="Containers"></i>
+                        <span class="list-group-item-value" translatable="yes">Containers</span>
+                    </a>
+                </li>
+                <li class="list-group-item" ng-class="{ active: viewActive('topology')}">
+                    <a ng-href="#{{ viewUrl('topology') }}">
+                        <i class="pficon pficon-topology fa-fw" title="Topology"></i>
+                        <span class="list-group-item-value" translatable="yes">Topology</span>
+                    </a>
+                </li>
+                <li class="list-group-item" ng-class="{ active: viewActive('list')}">
+                    <a ng-href="#{{ viewUrl('list') }}">
+                        <i class="fa fa-list fa-fw" title="Details"></i>
+                        <span class="list-group-item-value" translatable="yes">Details</span>
+                    </a>
+                </li>
+                <li class="list-group-item" ng-if="settings.isAdmin" ng-class="{ active: viewActive('volumes')}">
+                    <!-- Directly to avoid any namespace filtering -->
+                    <a id="kubernetes-volumes" ng-href="#/volumes">
+                        <i class="fa fa-database fa-fw" title="Volumes"></i>
+                        <span class="list-group-item-value" translatable="yes">Volumes</span>
+                    </a>
+                </li>
+                <li class="list-group-item" ng-class="{ active: viewActive('images')}"
+                    ng-if="settings.flavor == 'openshift'">
+                    <a ng-href="#{{ viewUrl('images') }}">
+                        <i class="pficon pficon-image fa-fw" title="Images"></i>
+                        <span class="list-group-item-value" translatable="yes">Images</span>
+                    </a>
+                </li>
+                <li class="list-group-item" ng-class="{ active: viewActive('projects')}"
+                    ng-if="settings.flavor == 'openshift'">
+                    <a ng-href="#{{ viewUrl('projects') }}">
+                        <i class="pficon pficon-project fa-fw" title="Projects"></i>
+                        <span class="list-group-item-value" translatable="yes">Projects</span>
+                    </a>
+                </li>
+            </ul>
         </div>
-      </div>
     </div>
 
       <div id="content" class="container-fluid" ng-view ng-if="!curtains" data-flavor="{{settings.flavor}}">

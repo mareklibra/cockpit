@@ -50,8 +50,11 @@ shared_MODULES = \
 	$(NULL)
 
 shared_LESS = \
+	pkg/kubernetes/styles/color-variables.less \
 	pkg/kubernetes/styles/variables-bootstrap.less \
 	pkg/kubernetes/styles/variables-patternfly.less \
+	pkg/kubernetes/styles/variables.less \
+	pkg/kubernetes/styles/dashboard.less \
 	pkg/kubernetes/styles/images.less \
 	pkg/kubernetes/styles/layers.less \
 	pkg/kubernetes/styles/projects.less \
@@ -122,7 +125,11 @@ kubernetes_VIEWS = \
 	pkg/kubernetes/views/pv-panel.html \
 	pkg/kubernetes/views/pvc-body.html \
 	pkg/kubernetes/views/node-add.html \
+	pkg/kubernetes/views/node-body.html \
+	pkg/kubernetes/views/node-capacity.html \
+	pkg/kubernetes/views/node-page.html \
 	pkg/kubernetes/views/node-panel.html \
+	pkg/kubernetes/views/nodes-page.html \
 	pkg/kubernetes/views/replicationcontroller-panel.html \
 	pkg/kubernetes/views/replicationcontroller-modify.html \
 	pkg/kubernetes/views/route-panel.html \
@@ -140,8 +147,9 @@ kubernetes_MODULES = \
 	pkg/kubernetes/scripts/details.js \
 	pkg/kubernetes/scripts/graphs.js \
 	pkg/kubernetes/scripts/main.js \
+	pkg/kubernetes/scripts/nodes.js \
 	pkg/kubernetes/scripts/object-describer.js \
-	pkg/kubernetes/scripts/storage.js \
+	pkg/kubernetes/scripts/volumes.js \
 	pkg/kubernetes/scripts/topology.js \
 	pkg/kubernetes/scripts/topology-graph.js \
 	$(NULL)
@@ -150,7 +158,7 @@ kubernetes_TESTS = \
 	pkg/kubernetes/tests/test-kube-client.html \
 	pkg/kubernetes/tests/test-images.html \
 	pkg/kubernetes/tests/test-projects.html \
-	pkg/kubernetes/tests/test-storage.html \
+	pkg/kubernetes/tests/test-volumes.html \
 	pkg/kubernetes/tests/test-utils.html \
 	pkg/kubernetes/tests/test-connection.html \
 	$(NULL)
@@ -164,7 +172,7 @@ kubernetes_LESS = \
 	pkg/kubernetes/styles/revealable.less \
 	pkg/kubernetes/styles/topology.less \
 	pkg/kubernetes/styles/topology-graph.less \
-	pkg/kubernetes/styles/storage.less \
+	pkg/kubernetes/styles/volumes.less \
 	$(NULL)
 
 kubernetes_MIN = \
