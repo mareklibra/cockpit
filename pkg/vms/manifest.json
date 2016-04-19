@@ -1,0 +1,12 @@
+{
+    "version": 0,
+
+    "menu": {
+        "index": {
+            "label": "VMs",
+        }
+    },
+
+    "content-security-policy": "default-src 'self' 'unsafe-inline' 'unsafe-eval'"
+}
+
