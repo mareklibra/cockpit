@@ -72,10 +72,10 @@ GZ_RULE = \
 	$(MIN_JS_RULE)
 .jsx.js:
 	$(AM_V_GEN) $(MKDIR_P) $(dir $@) && \
-		$(srcdir)/tools/missing $(srcdir)/tools/jsx < $< > $@.tmp && $(MV) $@.tmp $@
+		$(srcdir)/tools/missing $(srcdir)/tools/jsx --harmony < $< > $@.tmp && $(MV) $@.tmp $@
 .jsx.min.js:
 	$(AM_V_GEN) $(MKDIR_P) $(dir $@) && \
-		$(srcdir)/tools/missing $(srcdir)/tools/jsx < $< | \
+		$(srcdir)/tools/missing $(srcdir)/tools/jsx --harmony < $< | \
 		$(srcdir)/tools/missing $(srcdir)/tools/uglifyjs --mangle > $@.tmp && $(MV) $@.tmp $@
 .html.min.html:
 	$(V_CHECK) $(srcdir)/tools/missing $(srcdir)/tools/jshint --extract=always $<

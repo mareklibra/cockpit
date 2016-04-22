@@ -1,31 +1,75 @@
+SRCDIR=pkg/vms
+
+vms_MODULES = \
+	$(SRCDIR)/index.js \
+	$(SRCDIR)/store.js \
+	$(SRCDIR)/actions.js \
+	$(SRCDIR)/reducers.js \
+	$(SRCDIR)/app.js \
+	$(SRCDIR)/dashboard.js
+	$(NULL)
+
+vms_TESTS = \
+	$(NULL)
+
+# Typically only modify stuff above this line
+
+nodist_vms_DATA = \
+	$(SRCDIR)/index.min.html.gz \
+	$(SRCDIR)/bundle.min.js.gz \
+	$(SRCDIR)/app.min.css.gz \
+	$(NULL)
+
+vms_DATA = \
+	$(SRCDIR)/manifest.json \
+	$(NULL)
 
 vmsdir = $(pkgdatadir)/vms
-vms_DATA = \
-	pkg/vms/manifest.json \
-	pkg/vms/app.css \
-	pkg/vms/index.html \
-	$(NULL)
 
 vmsdebugdir = $(debugdir)$(vmsdir)
 vmsdebug_DATA = \
-	pkg/vms/bundle.js \
+	$(SRCDIR)/index.html \
+	$(SRCDIR)/app.css
 	$(vms_DATA) \
 	$(NULL)
 
-vms_BUNDLE = \
-	pkg/vms/src/app.js \
-	$(NULL)
-
-pkg/vms/bundle.js: $(vms_BUNDLE)
-	echo ===== Building pkg/vms/bundle.js. Add Webpack here
-	cp pkg/vms/src/app.js pkg/vms/bundle.js
-#	$(AM_V_GEN) $(srcdir)/tools/missing $(srcdir)/tools/jsbundle $@ $^
-
 CLEANFILES += \
-	pkg/vms/bundle.js \
+	$(SRCDIR)/bundle.min.js \
 	$(NULL)
 
 EXTRA_DIST += \
-	pkg/vms/bundle.js \
+	$(SRCDIR)/bundle.min.js \
 	$(vms_DATA) \
+	$(NULL)
+
+vms_MIN = \
+	$(vms_MODULES:.js=.min.js) \
+	$(NULL)
+
+vms_BUNDLE = $(vms_MIN)
+
+# Everything else into a nice big bundle
+$(SRCDIR)/bundle.min.js: $(vms_BUNDLE)
+	$(AM_V_GEN) $(srcdir)/tools/missing $(srcdir)/tools/jsbundle $@ $^
+
+TESTS += $(vms_TESTS)
+
+CLEANFILES += \
+	$(SRCDIR)/app.min.css \
+	$(SRCDIR)/index.min.html \
+	$(SRCDIR)/bundle.min.js \
+	$(vms_MIN) \
+	$(nodist_vms_DATA) \
+	$(NULL)
+
+EXTRA_DIST += \
+	$(SRCDIR)/app.min.css \
+	$(SRCDIR)/index.min.html \
+	$(SRCDIR)/bundle.min.js \
+	$(vms_BOWER) \
+	$(vms_BUNDLE) \
+	$(vms_MODULES) \
+	$(vms_DATA) \
+	$(vmsdebug_DATA) \
+	$(vms_TESTS) \
 	$(NULL)
