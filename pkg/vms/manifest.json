@@ -1,12 +1,9 @@
 {
-    "version": 0,
-
-    "menu": {
-        "index": {
-            "label": "VMs",
-        }
-    },
-
-    "content-security-policy": "default-src 'self' 'unsafe-inline' 'unsafe-eval'"
+  "version": 0,
+  "tools": {
+     "vms": {
+        "label": "Virtual Machines",
+        "path": "index.html"
+     }
+  }
 }
-
