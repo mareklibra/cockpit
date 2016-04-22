@@ -28,5 +28,9 @@
         "jquery-amend": "cockpit-project/jquery-amend",
         "redux": "https://cdnjs.cloudflare.com/ajax/libs/redux/3.5.1/redux.js",
         "react-redux": "https://cdnjs.cloudflare.com/ajax/libs/react-redux/4.4.5/react-redux.js"
-    }
+     },
+    "resolutions": {
+        "bootstrap": "3.3.6",
+        "d3": "3.5.5"
+     }
 }
