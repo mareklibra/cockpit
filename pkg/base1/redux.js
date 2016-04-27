@@ -1,0 +1,1 @@
+../../bower_components/redux/index.js
