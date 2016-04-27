@@ -80,10 +80,7 @@
             angular.extend($scope, actions);
 
             $scope.$on("activate", function(ev, id) {
-                if (!$scope.listing.expandable) {
-                    ev.preventDefault();
-                    $location.path('/nodes/' + encodeURIComponent(id));
-                }
+                $location.path('/nodes/' + encodeURIComponent(id));
             });
 
             $scope.nodePods = function node_pods(item) {
@@ -105,25 +102,6 @@
             };
         }
     ])
-
-    .directive('nodePanel',
-        function() {
-            return {
-                restrict: 'A',
-                link: function(scope, element, attrs) {
-                    var tab = 'main';
-                    scope.tab = function(name, ev) {
-                        if (ev) {
-                            tab = name;
-                            ev.stopPropagation();
-                        }
-                        return tab === name;
-                    };
-                },
-                templateUrl: 'views/node-panel.html'
-            };
-        }
-    )
 
     .directive('nodeBody',
         function() {

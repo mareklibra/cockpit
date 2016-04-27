@@ -3,7 +3,6 @@ define([
     "base1/cockpit",
     "shell/controls",
     "data!./operation.html",
-    "base1/bootstrap-select"
 ], function(jQuery, cockpit, controls, html) {
     var module = { };
 
@@ -214,9 +213,9 @@ define([
             $(".realms-op-wait-message").toggle(!!operation);
             $(".realms-op-field").prop('disabled', !!operation);
             $(".realms-op-apply").prop('disabled', !!operation);
+            $(".realm-active-directory-only").hide();
 
             var server = find_detail(realm, "server-software");
-            $(".realm-active-directory-only").toggle(!server || server == "active-directory");
 
             if (realm && kerberos && !kerberos.valid) {
                 message = cockpit.format(_("Domain $0 is not supported"), realm.Name);
@@ -233,6 +232,8 @@ define([
 
             if (mode != 'join')
                 return;
+
+            $(".realm-active-directory-only").toggle(!server || server == "active-directory");
 
             if (realm && realm.Name && !$(".realms-op-address")[0].placeholder) {
                 $(".realms-op-address")[0].placeholder = cockpit.format(_('e.g. "$0"'), realm.Name);

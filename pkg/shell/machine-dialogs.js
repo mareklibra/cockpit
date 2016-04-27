@@ -35,7 +35,6 @@ define([
     "data!shell/templates/unknown-hostkey.html",
     'translated!base1/po',
     "base1/patterns",
-    "base1/bootstrap-select",
 ], function($, cockpit, mustache, machines, credentials, local_manifests,
             add_tmpl, auth_failed_tmpl, change_auth_tmpl,
             change_port_tmpl, color_picker_tmpl, invalid_hostkey_tmpl,
@@ -274,17 +273,6 @@ define([
 
     function MachineColorPicker() {
         var self = this;
-        var colors = [];
-        for (var i = 0; i < machines.colors.length; i += 6) {
-            var part = machines.colors.slice(i, i+6);
-            colors.push({"list" : part});
-        }
-
-        function switch_color() {
-            /*jshint validthis: true */
-            var color = $(this).css('background-color');
-            $('#host-edit-color').css('background-color', color);
-        }
 
         self.render = function(selector, address, selected_color) {
             var machine;
@@ -298,18 +286,30 @@ define([
             if (!selected_color)
                 selected_color = machines_ins.unused_color();
 
-            var text = mustache.render(templates["color-picker"], {
-                'colors' : colors,
-                'selected_color' : selected_color
+            var part, colors = [];
+            for (var i = 0; i < machines.colors.length; i += 6) {
+                part = machines.colors.slice(i, i+6);
+                colors.push({"list" : part});
+            }
+
+            var text = mustache.render(templates["color-picker"], { 'colors' : colors, });
+            $(selector).html(text);
+
+            $("#host-edit-color", selector).css("background-color", selected_color);
+            $(".color-cell", selector).each(function(index) {
+                $(this).css("background-color", machines.colors[index]);
             });
 
-            $(selector).html(text);
-            $('#host-edit-color-popover .popover-content .color-cell').click(switch_color);
+            $('#host-edit-color-popover .popover-content .color-cell', selector)
+                .click(function() {
+                    var color = $(this).css('background-color');
+                    $('#host-edit-color', selector).css('background-color', color);
+                });
 
-            $("#host-edit-color").parent().
+            $("#host-edit-color", selector).parent().
                 on('show.bs.dropdown', function () {
-                    var $div = $('#host-edit-color');
-                    var $pop = $('#host-edit-color-popover');
+                    var $div = $('#host-edit-color', selector);
+                    var $pop = $('#host-edit-color-popover', selector);
                     var div_pos = $div.position();
                     var div_width = $div.width();
                     var div_height = $div.height();
@@ -330,7 +330,7 @@ define([
                     $pop.show();
                 }).
                 on('hide.bs.dropdown', function () {
-                    $('#host-edit-color-popover').hide();
+                    $('#host-edit-color-popover', selector).hide();
                 });
         };
     }
@@ -398,7 +398,7 @@ define([
         function add_machine() {
             run_error = null;
             dialog.address = $('#add-machine-address').val();
-            color = $.color.parse($('#host-edit-color').css('background-color')).toString();
+            color = $.color.parse($('#add-machine-color-picker #host-edit-color').css('background-color')).toString();
             if (existing_error(dialog.address))
                 return;
 
@@ -633,8 +633,10 @@ define([
             dialog.run(dfp.promise());
         }
 
-        function toggle_rows() {
-            var stored = $("#login-type").val() == 'stored';
+        function change_login_type(value) {
+            var stored = value != 'password';
+            var text = $("#login-type li[value=" + value + "]").text();
+            $("#login-type button span").text(text);
             $("#login-available").toggle(stored);
             $("#login-diff-password").toggle(!stored);
         }
@@ -699,9 +701,10 @@ define([
 
                 dialog.get_sel().dialog("wait", promise);
             } else if (!$.isEmptyObject(available)) {
-                $("#login-type").selectpicker('refresh');
-                $("#login-type").on('change', toggle_rows);
-                toggle_rows();
+                $("#login-type li").on('click', function() {
+                    change_login_type($(this).attr("value"));
+                });
+                change_login_type($("#login-type li:first-child").attr("value"));
                 dialog.get_sel(".btn-primary").on("click", login);
                 dialog.get_sel("a[data-content]").popover();
 

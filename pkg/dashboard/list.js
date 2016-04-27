@@ -17,14 +17,14 @@
  * along with Cockpit; If not, see <http://www.gnu.org/licenses/>.
  */
 
-define([
+require([
     "jquery",
     "base1/cockpit",
     "base1/mustache",
     "shell/controls",
     "shell/shell",
     "shell/machines",
-    "./image-editor",
+    "dashboard/image-editor",
     "shell/machine-dialogs",
     "base1/patterns",
     "shell/plot",
@@ -137,24 +137,6 @@ var avatar_editor;
 
 $(function () {
     avatar_editor = image_editor($('#host-edit-avatar'), 256, 256);
-
-    $('#host-edit-color').parent().
-        on('show.bs.dropdown', function () {
-            var $div = $('#host-edit-color');
-            var $pop = $('#host-edit-color-popover');
-            var div_pos = $div.position();
-            var div_width = $div.width();
-            var div_height = $div.height();
-            var pop_width = $pop.width();
-            var pop_height = $pop.height();
-
-            $pop.css('left', div_pos.left + (div_width - pop_width) / 2);
-            $pop.css('top', div_pos.top - pop_height + 10);
-            $pop.show();
-        }).
-        on('hide.bs.dropdown', function () {
-            $('#host-edit-color-popover').hide();
-        });
 });
 
 function host_edit_dialog(machine_manager, host) {
@@ -188,7 +170,7 @@ function host_edit_dialog(machine_manager, host) {
         dlg.dialog('failure', null);
         var values = {
             avatar: avatar_editor.changed ? avatar_editor.get_data(128, 128, "image/png") : null,
-            color: $.color.parse($('#host-edit-color').css('background-color')).toString(),
+            color: $.color.parse($('#host-edit-colorpicker #host-edit-color').css('background-color')).toString(),
             label: $('#host-edit-name').val(),
         };
 
@@ -403,6 +385,9 @@ PageDashboard.prototype = {
                 });
 
                 target.html(text);
+                $("[data-color]", target).each(function() {
+                    $(this).css("border-left-color", $(this).attr("data-color"));
+                });
                 $(".delete-localhost").tooltip({
                       title : _("You are currently connected directly to this server. You cannot delete it.")
                 });
@@ -582,6 +567,5 @@ function init() {
     navigate();
 }
 
-return init;
-
+init();
 });

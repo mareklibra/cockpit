@@ -18,6 +18,7 @@ nodist_base_DATA = \
 	pkg/base1/bundle.min.js.gz \
 	pkg/base1/react.min.js.gz \
 	pkg/base1/redux.min.js.gz \
+	pkg/base1/cockpit-components.min.js.gz \
 	$(base_GEN:.js=.min.js.gz) \
 	$(NULL)
 base_DATA = \
@@ -30,7 +31,6 @@ basedebug_DATA = \
 	pkg/base1/angular-csp.css \
 	pkg/base1/angular-patternfly.css \
 	pkg/base1/bootstrap-datepicker.js \
-	pkg/base1/bootstrap-select.js \
 	pkg/base1/bootstrap-combobox.js \
 	pkg/base1/bundle.js \
 	pkg/base1/cockpit.css \
@@ -46,6 +46,7 @@ basedebug_DATA = \
 	pkg/base1/mustache.js \
 	pkg/base1/jquery.js \
 	pkg/base1/cockpit.js \
+	pkg/base1/cockpit-components.js \
 	$(base_GEN) \
 	$(NULL)
 
@@ -54,15 +55,12 @@ base_BUNDLE = \
 	pkg/base1/cockpit.min.js \
 	pkg/base1/jquery.min.js \
 	pkg/base1/bootstrap-datepicker.min.js \
-	pkg/base1/bootstrap-select.min.js \
 	pkg/base1/bootstrap-combobox.min.js \
 	pkg/base1/mustache.min.js \
 	pkg/base1/patterns.min.js \
 	$(NULL)
 
 pkg/base1/angular.min.js: pkg/base1/angular.js
-	$(MIN_JS_RULE)
-pkg/base1/bootstrap-select.min.js: pkg/base1/bootstrap-select.js
 	$(MIN_JS_RULE)
 pkg/base1/bundle.min.js: $(base_BUNDLE)
 	$(AM_V_GEN) $(srcdir)/tools/missing $(srcdir)/tools/jsbundle $@ $^
@@ -80,6 +78,14 @@ pkg/base1/react.min.js: pkg/base1/react.js
 	$(MIN_JS_RULE)
 pkg/base1/redux.min.js: pkg/base1/redux.js
 	$(MIN_JS_RULE)
+pkg/base1/cockpit-components.min.js: pkg/base1/cockpit-components.js
+	$(MIN_JS_RULE)
+
+REACT_COMPONENTS = \
+	pkg/base1/cockpit-components-terminal.js
+
+pkg/base1/cockpit-components.js: $(REACT_COMPONENTS)
+	$(JSMODULE) -o pkg/base1/cockpit-components.js $(REACT_COMPONENTS)
 
 install-data-local::
 	$(MKDIR_P) $(DESTDIR)$(basedebugdir)
@@ -127,7 +133,6 @@ TESTS += $(base_TESTS)
 CLEANFILES += \
 	pkg/base1/angular.min.js \
 	pkg/base1/bootstrap-datepicker.min.js \
-	pkg/base1/bootstrap-select.min.js \
 	pkg/base1/bootstrap-combobox.min.js \
 	pkg/base1/bundle.min.js \
 	pkg/base1/cockpit.min.js \
@@ -141,6 +146,10 @@ CLEANFILES += \
 	pkg/base1/redux.min.js \
 	pkg/base1/require.min.js \
 	pkg/base1/term.min.js \
+	pkg/base1/cockpit-components.js \
+	pkg/base1/cockpit-components.min.js \
+	pkg/base1/cockpit-components-terminal.js \
+	$(REACT_COMPONENTS) \
 	$(base_GEN) \
 	$(base_GEN:.js=.min.js) \
 	$(nodist_base_DATA) \
@@ -148,7 +157,6 @@ CLEANFILES += \
 
 EXTRA_DIST += \
 	pkg/base1/angular.min.js \
-	pkg/base1/bootstrap-select.min.js \
 	pkg/base1/bootstrap-datepicker.min.js \
 	pkg/base1/bootstrap-combobox.min.js \
 	pkg/base1/bundle.min.js \
@@ -161,7 +169,10 @@ EXTRA_DIST += \
 	pkg/base1/react.min.js \
 	pkg/base1/redux.min.js \
 	pkg/base1/term.min.js \
+	pkg/base1/cockpit-components.js \
+	pkg/base1/cockpit-components.min.js \
 	pkg/base1/test-dbus-common.js \
+	$(REACT_COMPONENTS) \
 	$(base_BUNDLE) \
 	$(base_GEN) \
 	$(base_GEN:.js=.min.js) \

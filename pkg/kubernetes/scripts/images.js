@@ -41,6 +41,7 @@
         'kubernetes.date',
         'kubernetes.listing',
         'registry.layers',
+        'registry.tags',
     ])
 
     .config([
@@ -70,9 +71,12 @@
         'imageData',
         'imageActions',
         'ListingState',
+        'projectData',
         'filterService',
-        function($scope, $location, data, actions, ListingState) {
+        function($scope, $location, data, actions, ListingState, projectData) {
             $scope.imagestreams = data.allStreams;
+            $scope.sharedImages = projectData.sharedImages;
+
             angular.extend($scope, data);
 
             $scope.listing = new ListingState($scope);
@@ -81,10 +85,8 @@
             data.watchImages();
 
             $scope.$on("activate", function(ev, id) {
-                if (!$scope.listing.expandable) {
-                    ev.preventDefault();
-                    $location.path('/images/' + id);
-                }
+                ev.preventDefault();
+                $location.path('/images/' + id);
             });
 
             /* All the actions available on the $scope */
@@ -111,7 +113,8 @@
         'imageData',
         'imageActions',
         'ListingState',
-        function($scope, $location, $routeParams, select, loader, data, actions, ListingState) {
+        'projectData',
+        function($scope, $location, $routeParams, select, loader, data, actions, ListingState, projectData) {
             var target = $routeParams["target"] || "";
             var pos = target.indexOf(":");
 
@@ -169,6 +172,7 @@
             /* All the data actions available on the $scope */
             angular.extend($scope, data);
             angular.extend($scope, actions);
+            $scope.sharedImages = projectData.sharedImages;
 
             /* But special case a few */
             $scope.deleteImageStream = function(stream) {
@@ -181,6 +185,11 @@
 
                 return promise;
             };
+
+            $scope.$on("activate", function(ev, id) {
+                ev.preventDefault();
+                $location.path('/images/' + id);
+            });
 
             $scope.deleteTag = function(stream, tag) {
                 var promise = actions.deleteTag(stream, tag);
@@ -575,33 +584,48 @@
         "$scope",
         "$modalInstance",
         "dialogData",
+        "imageTagData",
         "kubeMethods",
         "filterService",
-        function($scope, $instance, dialogData, methods, filter) {
+        function($scope, $instance, dialogData, tagData, methods, filter) {
             var stream = dialogData.stream || { };
             var meta = stream.metadata || { };
             var spec = stream.spec || { };
 
+            var populate = "none";
+            if (spec.dockerImageRepository)
+                populate = "pull";
+            if (spec.tags)
+                populate = "tags";
+
             var fields = {
                 name: meta.name || "",
                 project: meta.namespace || filter.namespace() || "",
-                populate: spec.dockerImageRepository ? "pull" : "none",
+                populate: populate,
                 pull: spec.dockerImageRepository || "",
+                tags: tagData.parseSpec(spec),
             };
 
             $scope.fields = fields;
             $scope.labels = {
                 populate: {
                     none: "Don't pull images automatically",
-                    pull: "Pull all tags from another image repository",
+                    pull: "Sync all tags from a remote image repository",
+                    tags: "Pull specific tags from another image repository",
                 }
             };
+
+            /* During creation we have a different label */
+            if (!dialogData.stream)
+                $scope.labels.populate.none = "Create empty image stream";
 
             function performModify() {
                 var data = { spec: { dockerImageRepository: null, tags: null } };
 
                 if (fields.populate != "none")
                     data.spec.dockerImageRepository = fields.pull.trim();
+                if (fields.populate == "tags")
+                    tagData.buildSpec(fields.tags, data.spec);
 
                 return methods.patch(stream, data);
             }
@@ -615,11 +639,10 @@
                     }
                 };
 
-                if (fields.populate != "none") {
-                    data.spec = {
-                        dockerImageRepository: fields.pull.trim(),
-                    };
-                }
+                if (fields.populate != "none")
+                    data.spec = { dockerImageRepository: fields.pull.trim(), };
+                if (fields.populate == "tags")
+                    data.spec = tagData.buildSpec(fields.tags, data.spec);
 
                 return methods.check(data, {
                     "metadata.name": "#imagestream-modify-name",

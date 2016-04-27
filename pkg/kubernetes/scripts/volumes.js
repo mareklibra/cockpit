@@ -96,32 +96,11 @@
             };
 
             $scope.$on("activate", function(ev, id) {
-                if (!$scope.listing.expandable) {
-                    ev.preventDefault();
-                    $location.path('/volumes/' + id);
-                }
+                ev.preventDefault();
+                $location.path('/volumes/' + id);
             });
         }
     ])
-
-    .directive('pvPanel',
-        function() {
-            return {
-                restrict: 'A',
-                link: function(scope, element, attrs) {
-                    var tab = 'main';
-                    scope.tab = function(name, ev) {
-                        if (ev) {
-                            tab = name;
-                            ev.stopPropagation();
-                        }
-                        return tab === name;
-                    };
-                },
-                templateUrl: 'views/pv-panel.html'
-            };
-        }
-    )
 
     .directive('pvBody',
         function() {
@@ -431,7 +410,7 @@
                     data: null,
                 };
 
-                validModes = Object.keys(fields.accessModes);
+                validModes = Object.keys(fields.accessModes || {});
                 for (i = 0; i < validModes.length; i++) {
                     var mode = validModes[i];
                     if (fields[mode])
@@ -462,7 +441,7 @@
                 }
 
                 policy = fields.policy ? fields.policy.trim() : fields.policy;
-                if (!fields.reclaimPolicies[policy]) {
+                if (!fields.reclaimPolicies || !fields.reclaimPolicies[policy]) {
                     ex = new Error(_("Please select a valid policy option."));
                     ex.target = "#last-policy";
                     ret.errors.push(ex);
@@ -525,7 +504,7 @@
             }
 
             function validate (item, fields) {
-                var regex = /^[a-z0-9.-]+$/i;
+                var regex = /^[a-z0-9.:-]+$/i;
 
                 var data, ex, server, path;
                 var ret = {
@@ -636,6 +615,107 @@
         }
     ])
 
+
+    .factory("iscsi"+VOLUME_FACTORY_SUFFIX, [
+        "volumeData",
+        "KubeTranslate",
+        function (volumeData, translate) {
+            var _ = translate.gettext;
+
+            function build(item) {
+                if (!item)
+                    item = {};
+
+                var spec = item.spec || {};
+                var source = spec.iscsi || {};
+                return {
+                    target: source.targetPortal,
+                    fstype: source.fsType || "ext4",
+                    iqn: source.iqn,
+                    lun: source.lun || 0,
+                    iface: source.iscsiInterface,
+                    readOnly: source.readOnly,
+                    ReadWriteOnce: true,
+                    accessModes: {
+                        "ReadWriteOnce": volumeData.accessModes["ReadWriteOnce"],
+                    },
+                    reclaimPolicies: {
+                        "Retain": volumeData.reclaimPolicies["Retain"],
+                    },
+                };
+            }
+
+            function validate (item, fields) {
+                var ex, lun, target, iqn, fs, iface;
+                var regex = /^[a-z0-9.:-]+$/i;
+
+                var ret = {
+                    errors: [],
+                    data: null,
+                };
+
+                target = fields.target ? fields.target.trim() : fields.target;
+                if (!target || !regex.test(target)) {
+                    ex = new Error(_("Please provide a valid target"));
+                    ex.target = "#modify-iscsi-target";
+                    ret.errors.push(ex);
+                    ex = null;
+                }
+
+                iqn = fields.iqn ? fields.iqn.trim() : fields.iqn;
+                if (!iqn || !regex.test(iqn)) {
+                    ex = new Error(_("Please provide a valid qualified name"));
+                    ex.target = "#modify-iscsi-iqn";
+                    ret.errors.push(ex);
+                    ex = null;
+                }
+
+                lun = parseInt(fields.lun ? fields.lun.trim() : fields.lun, 10);
+                if (isNaN(lun)) {
+                    ex = new Error(_("Please provide a valid logical unit number"));
+                    ex.target = "#modify-iscsi-lun";
+                    ret.errors.push(ex);
+                    ex = null;
+                }
+
+                fs = fields.fstype ? fields.fstype.trim() : "ext4";
+                if (!regex.test(fs)) {
+                    ex = new Error(_("Please provide a valid filesystem type"));
+                    ex.target = "#modify-fstype";
+                    ret.errors.push(ex);
+                    ex = null;
+                }
+
+                iface = fields.iface ? fields.iface.trim() : undefined;
+                if (iface && !regex.test(iface)) {
+                    ex = new Error(_("Please provide a valid interface"));
+                    ex.target = "#modify-iscsi-iface";
+                    ret.errors.push(ex);
+                    ex = null;
+                }
+
+                if (ret.errors.length < 1) {
+                    ret.data = {
+                        iqn: iqn,
+                        lun: lun,
+                        fsType: fs,
+                        targetPortal: target,
+                        readOnly: !!fields.readOnly
+                    };
+                    if (iface)
+                        ret.data["iscsiInterface"] = iface;
+                }
+
+                return ret;
+            }
+
+            return {
+                build: build,
+                validate: validate,
+            };
+        }
+    ])
+
     .controller("PVModifyCtrl", [
         "$q",
         "$scope",
@@ -661,6 +741,10 @@
                 {
                     name: _("Host Path"),
                     type: "hostPath",
+                },
+                {
+                    name: _("ISCSI"),
+                    type: "iscsi",
                 },
             ];
 
