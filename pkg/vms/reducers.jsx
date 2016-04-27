@@ -1,5 +1,5 @@
 define([
-  "redux"
+  "../../base1/redux"
 ], function ({ combineReducers }) {
 
   function vms (state, action) {

@@ -1,6 +1,6 @@
 define([
-  "react",
-  "react-redux",
+  "../../base1/react",
+  "../../base1/react-redux",
   "vms/actions",
   "vms/dashboard"
 ], function (React, { connect }, { myCustomAction }, Dashboard) {
