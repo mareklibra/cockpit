@@ -4,8 +4,7 @@
         waitSeconds: 30,
         paths: {
             "jquery": "base1/jquery",
-            "react": "base1/react",
-            "redux": "base1/redux"
+            "react": "base1/react"
         }
     });
 })(require);

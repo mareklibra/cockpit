@@ -23,16 +23,17 @@ define([
 
 define([
   "react",
-  "base1/react-redux",// TODO: error: no 'redux' found
-  "base1/cockpit"
-], function (React, connect, cockpit) {
+  "base1/cockpit",
+  "vms/dashboard"
+], function (React, cockpit, Dashboard) {
   "use strict";
 
   var appBody = React.createClass({
     render: function() {
       return (
         <div>
-          <h1>Welcome to New Cockpit VM managment</h1>
+          <h1>Welcome to New Cockpit VM Managment</h1>
+          <Dashboard />
         </div>
       );
     }

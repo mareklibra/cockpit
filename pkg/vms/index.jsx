@@ -17,15 +17,17 @@ require([
 
 require([
   "react",
-  "redux",
+  "base1/redux",
   "base1/cockpit",
   "vms/store",
   "vms/app"
-], function(React, Provider, cockpit, store, App) {
+], function(React, Redux, cockpit, store, App) {
   "use strict";
 
+  console.log('index.js: state: ' + JSON.stringify(store.getState()));
+
   React.render(
-      <App/>,
+      <App store={store}/>,
     document.getElementById('app'));
 /*
  React.render(

@@ -26,8 +26,7 @@
         "requirejs": "#2.1.16",
         "term.js-cockpit": "#0.0.7",
         "jquery-amend": "cockpit-project/jquery-amend",
-        "redux": "https://cdnjs.cloudflare.com/ajax/libs/redux/3.5.1/redux.js",
-        "react-redux": "https://cdnjs.cloudflare.com/ajax/libs/react-redux/4.4.5/react-redux.js"
+        "redux": "https://cdnjs.cloudflare.com/ajax/libs/redux/3.5.1/redux.js"
      },
     "resolutions": {
         "bootstrap": "3.3.6",

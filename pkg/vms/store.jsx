@@ -12,13 +12,14 @@
 */
 
 define([
-  "redux",
+  "base1/redux",
   "vms/reducers"
-], function (RR, reducer) {
-
-  const store = RR.createStore(reducer);
+], function (Redux, reducer) {
+  console.log("Creating new Redux store");
+  const store = Redux.createStore(reducer);
 
   // configure store here
 
+  console.log('store.jsx: state: ' + JSON.stringify(store.getState()));
   return store;
 });
