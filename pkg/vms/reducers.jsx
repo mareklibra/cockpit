@@ -1,6 +1,6 @@
 define([
-  "../../base1/redux"
-], function ({ combineReducers }) {
+  "redux"
+], function ({combineReducers}) {
 
   function vms (state, action) {
     state = state || 'Initial State';

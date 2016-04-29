@@ -5,6 +5,7 @@
         paths: {
             "jquery": "base1/jquery",
             "react": "base1/react",
+            "redux": "base1/redux"
         }
     });
 })(require);

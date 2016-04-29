@@ -1,6 +1,6 @@
 define([
-  "../../base1/react",
-  "../../base1/react-redux"
+  "react",
+  "base1/react-redux"
 ], function (React, { connect }) {
 
   function Dashboard ({ stuff }) {

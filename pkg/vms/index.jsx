@@ -15,14 +15,25 @@ require([
 });
 */
 
-
-define([
+require([
   "react",
-  "redux"
-], function (React, { Provider } ) {
+  "redux",
+  "base1/cockpit",
+  "vms/store",
+  "vms/app"
+], function(React, Provider, cockpit, store, App) {
+  "use strict";
 
   React.render(
-    <h1>Hello</h1>,
+      <App/>,
     document.getElementById('app'));
+/*
+ React.render(
+ <Provider store={store}>
+ <App/>
+ </Provider>,
+ document.getElementById('app'));
+
+ */
 
 });
