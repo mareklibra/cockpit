@@ -12,6 +12,7 @@
 *.so
 *~
 *.dirstamp
+.idea
 .deps/
 .libs/
 Makefile
