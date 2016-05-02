@@ -24,16 +24,22 @@ define([
 define([
   "react",
   "base1/cockpit",
-  "vms/dashboard"
-], function (React, cockpit, Dashboard) {
+  "vms/dashboard",
+  "vms/actions"
+], function (React, cockpit, Dashboard, { myCustomAction }) {
   "use strict";
 
+  // App is a 'Smart' component - interacts with Redux store
   var appBody = React.createClass({
     render: function() {
+      const { store } = this.props;
+      const state = store.getState();
       return (
         <div>
           <h1>Welcome to New Cockpit VM Managment</h1>
-          <Dashboard />
+          <Dashboard
+            vms={state.vms}
+            onCustomAction={() => store.dispatch(myCustomAction('state changed'))} />
         </div>
       );
     }

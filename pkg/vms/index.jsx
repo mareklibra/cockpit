@@ -26,9 +26,17 @@ require([
 
   console.log('index.js: state: ' + JSON.stringify(store.getState()));
 
-  React.render(
+  function render() {
+    React.render(
       <App store={store}/>,
-    document.getElementById('app'));
+      document.getElementById('app'));
+  }
+
+  // re-render app every time the state changes
+  store.subscribe(render);
+
+  // do initial render
+  render();
 /*
  React.render(
  <Provider store={store}>
