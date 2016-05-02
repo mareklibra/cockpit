@@ -1,10 +1,17 @@
 define([], function () {
   // Action Creators for the application
   return {
-    myCustomAction (param) {
+    readHostVmsAction () {
+      return {
+        type: 'READ_HOST_VMS'
+      };
+    },
+
+
+    myCustomAction (vmId) {
       return {
         type: 'MY_CUSTOM_ACTION',
-        param
+        vmId: vmId
       };
     }
   };

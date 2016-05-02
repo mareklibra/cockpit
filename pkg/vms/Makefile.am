@@ -6,6 +6,7 @@ vms_MODULES = \
 	$(SRCDIR)/actions.js \
 	$(SRCDIR)/reducers.js \
 	$(SRCDIR)/app.js \
+	$(SRCDIR)/hostvmslist.js \
 	$(SRCDIR)/dashboard.js
 	$(NULL)
 

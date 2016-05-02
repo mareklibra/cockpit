@@ -1,23 +1,6 @@
-/*
-define([
-  "react",
-  "base1/react-redux"
-], function (React, { connect }) {
+// THIS COMPONENT IS NOT USED.
+// For testing only
 
-  function Dashboard ({ stuff }) {
-    return (
-      <div>
-        <h2>Fancy Dashboard</h2>
-        {stuff}
-      </div>
-    );
-  }
-
-  return connect(state => ({
-    stuff: state.vms
-  }))(Dashboard);
-});
-*/
 define([
   "react"
 ], function (React) {
@@ -31,6 +14,7 @@ define([
         <div>
           <h2>My Fancy Dashboard</h2>
           <button onClick={onCustomAction}>Some custom action</button>
+          {JSON.stringify(vms)}
         </div>
       );
     }

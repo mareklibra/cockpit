@@ -1,28 +1,11 @@
-/*
-require([
-  "../../base1/react",
-  "../../base1/redux",
-  "vms/store",
-  "vms/app"
-], function (React, { Provider }, store, App) {
-
-  React.render(
-    <Provider store={store}>
-      <App />
-    </Provider>,
-    document.getElementById('app'));
-
-});
-*/
-
 require([
   "react",
   "base1/redux",
   "base1/cockpit",
   "vms/store",
-  "vms/app"
-], function(React, Redux, cockpit, store, App) {
-  "use strict";
+  "vms/app",
+  "vms/actions"
+], function(React, Redux, cockpit, store, App, {readHostVmsAction}) {
 
   console.log('index.js: state: ' + JSON.stringify(store.getState()));
 
@@ -37,13 +20,7 @@ require([
 
   // do initial render
   render();
-/*
- React.render(
- <Provider store={store}>
- <App/>
- </Provider>,
- document.getElementById('app'));
 
- */
-
+  // initiate data retrieval
+  store.dispatch(readHostVmsAction());
 });
