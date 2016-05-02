@@ -146,7 +146,7 @@
 
 
                 if ($scope.tag)
-                    $scope.image = select().kind("Image").taggedBy($scope.tag).one();
+                    $scope.image = select().kind("Image").taggedFirst($scope.tag).one();
                 if ($scope.image) {
                     $scope.names = data.imageTagNames($scope.image);
                     $scope.config = data.imageConfig($scope.image);
@@ -351,13 +351,24 @@
             loader.listen(handle_imagestreams);
 
             /*
-             * Filters selection to those with names that are
+             * Filters selection to those with names that is
              * in the given TagEvent.
              */
             select.register("taggedBy", function(tag) {
                 var i, len, results = { };
                 for (i = 0, len = tag.items.length; i < len; i++)
                     this.name(tag.items[i].image).extend(results);
+                return select(results);
+            });
+
+            /*
+             * Filters selection to those with names that is in the first
+             * item in the given TagEvent.
+             */
+            select.register("taggedFirst", function(tag) {
+                var len, results = { };
+                if (tag.items.length)
+                    this.name(tag.items[0].image).extend(results);
                 return select(results);
             });
 
@@ -482,8 +493,8 @@
                 allStreams: function allStreams() {
                     return select().kind("ImageStream");
                 },
-                imagesByTag: function imagesByTag(tag) {
-                    return select().kind("Image").taggedBy(tag);
+                imageByTag: function imageByTag(tag) {
+                    return select().kind("Image").taggedFirst(tag);
                 },
                 imageLayers: imageLayers,
                 imageConfig: function imageConfig(image) {
@@ -493,7 +504,10 @@
                     return select().kind("ImageStream").listTagNames(image.metadata.name);
                 },
                 imageLabels: function imageLabels(image) {
-                    return select(image).dockerImageConfig().dockerConfigLabels().one();
+                    var labels = select(image).dockerImageConfig().dockerConfigLabels().one();
+                    if (labels && angular.equals({ }, labels))
+                        labels = null;
+                    return labels;
                 },
                 configCommand: configCommand,
             };
@@ -604,6 +618,7 @@
                 populate: populate,
                 pull: spec.dockerImageRepository || "",
                 tags: tagData.parseSpec(spec),
+                insecure: hasInsecureTag(spec),
             };
 
             $scope.fields = fields;
@@ -625,7 +640,7 @@
                 if (fields.populate != "none")
                     data.spec.dockerImageRepository = fields.pull.trim();
                 if (fields.populate == "tags")
-                    tagData.buildSpec(fields.tags, data.spec);
+                    tagData.buildSpec(fields.tags, data.spec, fields.insecure);
 
                 return methods.patch(stream, data);
             }
@@ -642,7 +657,7 @@
                 if (fields.populate != "none")
                     data.spec = { dockerImageRepository: fields.pull.trim(), };
                 if (fields.populate == "tags")
-                    data.spec = tagData.buildSpec(fields.tags, data.spec);
+                    data.spec = tagData.buildSpec(fields.tags, data.spec, fields.insecure);
 
                 return methods.check(data, {
                     "metadata.name": "#imagestream-modify-name",
@@ -652,8 +667,24 @@
                 });
             }
 
+            function hasInsecureTag(spec) {
+                // loop through tags, check importPolicy.insecure boolean
+                // if one tag is insecure the intent is the imagestream is insecure
+                var insecure;
+                if (spec) {
+                    for (var tag in spec.tags) {
+                        if (spec.tags[tag].importPolicy.insecure) {
+                            insecure = spec.tags[tag].importPolicy.insecure;
+                            break;
+                        }
+                    }
+                }
+                return insecure;
+            }
+
             $scope.performCreate = performCreate;
             $scope.performModify = performModify;
+            $scope.hasInsecureTag = hasInsecureTag;
 
             $scope.projects = filter.namespaces;
             angular.extend($scope, dialogData);
