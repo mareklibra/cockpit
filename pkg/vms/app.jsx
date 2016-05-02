@@ -27,7 +27,7 @@ define([
   "vms/dashboard",
   "vms/actions"
 ], function (React, cockpit, Dashboard, { myCustomAction }) {
-  "use strict";
+//  "use strict";
 
   // App is a 'Smart' component - interacts with Redux store
   var appBody = React.createClass({
