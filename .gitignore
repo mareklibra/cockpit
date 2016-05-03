@@ -136,6 +136,8 @@ org.freedesktop.UDisks2.h
 /pkg/kubernetes/registry-templates.js
 /pkg/selinux/setroubleshoot-view.js
 
+/pkg/vms/*.js
+
 # Test output
 Test*.log
 cockpit-wip.tar*
