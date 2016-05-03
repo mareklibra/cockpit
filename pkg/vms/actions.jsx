@@ -3,7 +3,8 @@ define([], function () {
   return {
     readHostVmsAction () {
       return {
-        type: 'READ_HOST_VMS'
+        type: 'DBUS',
+        server: ''
       };
     },
 

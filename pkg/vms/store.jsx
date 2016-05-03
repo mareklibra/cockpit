@@ -2,10 +2,13 @@ define([
   "base1/redux",
   "vms/reducers"
 ], function (Redux, reducer) {
-  console.log("Creating new Redux store");
-  const store = Redux.createStore(reducer);
+  const createStoreWithMiddleware = compose(
+    applyMiddleware(thunk),
+    applyMiddleware(virt),
+    applyMiddleware(machined)
+  )(Redux.createStore);
 
-  // configure store here
+  const store = createStoreWithMiddleware(reducer);
 
   console.log('store.jsx: state: ' + JSON.stringify(store.getState()));
   return store;
