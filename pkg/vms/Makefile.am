@@ -5,6 +5,8 @@ vms_MODULES = \
 	$(SRCDIR)/store.js \
 	$(SRCDIR)/actions.js \
 	$(SRCDIR)/reducers.js \
+	$(SRCDIR)/middlewares.js \
+	$(SRCDIR)/machined.js \
 	$(SRCDIR)/app.js \
 	$(SRCDIR)/hostvmslist.js \
 	$(SRCDIR)/dashboard.js
