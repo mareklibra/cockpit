@@ -1,6 +1,7 @@
 SRCDIR=pkg/vms
 
 vms_MODULES = \
+	$(SRCDIR)/_index.js \
 	$(SRCDIR)/index.js \
 	$(SRCDIR)/store.js \
 	$(SRCDIR)/actions.js \
@@ -9,7 +10,6 @@ vms_MODULES = \
 	$(SRCDIR)/machined.js \
 	$(SRCDIR)/app.js \
 	$(SRCDIR)/hostvmslist.js \
-	$(SRCDIR)/dashboard.js
 	$(NULL)
 
 vms_TESTS = \

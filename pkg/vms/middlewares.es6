@@ -1,8 +1,10 @@
-import cockpit from 'cockpit';
+import cockpit from 'base1/cockpit';
 import { setProvider } from 'vms/actions';
 import Machined from 'vms/machined';
 
 export function thunk({ dispatch, getState }) {
+  console.log('thunk-middleware');
+
   return next => action => {
     if (typeof action === 'function') {
       return action(dispatch, getState);
@@ -13,16 +15,18 @@ export function thunk({ dispatch, getState }) {
 }
 
 function getVirtProvider (store) {
-  const state = store.getSteate();
+  const state = store.getState();
   if (state.config.provider) {
     return cockpit.resolve(state.config.provider);
   } else {
     const deferred = cockpit.defer();
+    console.log('Discovering provider');
     // TODO: discover host capabilities by dispatching dbus() actions
 
     if (false /*TODO: Detect VDSM*/) {
       // TODO: dispatch/resolve VDSM provider
     } else if (true /* TODO: detect machined */) {
+      console.log('store.dispatch(setProvider(Machined))');
       store.dispatch(setProvider(Machined));
       deferred.resolve(Machined);
     } else { //  no provider available
@@ -33,12 +37,18 @@ function getVirtProvider (store) {
 }
 
 export function virt(store) {
+  console.log('virt-middleware');
   return next => action => {
     if (action.type === 'VIRT') {
       getVirtProvider(store).then(provider => {
         const method = action.method;
         if (method in provider) {
-          store.dispatch(provider[method](action));
+          console.log(`virt-middleware: Calling ${provider.name}.${method} with action: ` + JSON.stringify(action));
+          var nextAction = provider[method](action)
+          if (nextAction) {
+            console.log(`virt-middleware: nextAction to dispatch: ` + JSON.stringify(nextAction));
+            store.dispatch(nextAction);
+          }
         } else {
           console.warn(`method: '${method}' is not supported by provider: '${provider.name}'`);
         }
@@ -51,15 +61,24 @@ export function virt(store) {
   }
 }
 
+const wait_valid = (proxy, callback) => {
+  proxy.wait(function() {
+    if (proxy.valid) {
+      callback();
+    }
+  });
+}
 export function dbus({ dispatch, getState }) {
+  console.log('dbus-middleware');
   return next => action => {
     if (action.type === 'DBUS') {
       // TODO cache clients for the same name?
+      console.log(`dbus-middleware: action: ${action.name}, interface: ${action.interface}, path: ${action.path}`);
       const client = cockpit.dbus(action.name);
-
-      const proxy = client.proxy(action.interface, action.path);
+      const proxy = client.proxy(action.iface, action.path);
 
       const deferred = cockpit.defer();
+      console.log('deferred');
       proxy.wait(() => {
         if (proxy.valid) {
           proxy[action.method].apply(null, action.args).done(deferred.resolve).fail(deferred.reject);

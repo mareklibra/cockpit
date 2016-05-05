@@ -1,5 +1,5 @@
 import {combineReducers} from 'base1/redux';
-import cockpit from 'cockpit';
+import cockpit from 'base1/cockpit';
 
 function config (state = {provider: null}, action) {
   switch (action.type) {

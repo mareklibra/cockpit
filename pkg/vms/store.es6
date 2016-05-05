@@ -1,6 +1,6 @@
 import { compose, applyMiddleware, createStore } from 'base1/redux';
 import reducer from 'vms/reducers';
-import { thunk, virt, dbus } from 'middleware';
+import { thunk, virt, dbus } from 'vms/middlewares';
 
 const createStoreWithMiddleware = compose(
   applyMiddleware(thunk),

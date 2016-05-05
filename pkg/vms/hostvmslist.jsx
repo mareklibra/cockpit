@@ -1,5 +1,5 @@
 define([
-  "react"
+  "base1/react"
 ], function (React) {
   "use strict";
 

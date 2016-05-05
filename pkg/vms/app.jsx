@@ -1,9 +1,8 @@
 define([
-  "react",
+  "base1/react",
   "base1/cockpit",
-  "vms/dashboard",
   "vms/hostvmslist"
-], function (React, cockpit, Dashboard, HostVmsList) {
+], function (React, cockpit, HostVmsList) {
   // App is a 'Smart' component - interacts with Redux store
   var appBody = React.createClass({
     render: function() {
