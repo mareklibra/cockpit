@@ -49,7 +49,6 @@ basedebug_DATA = \
 	pkg/base1/mustache.js \
 	pkg/base1/jquery.js \
 	pkg/base1/cockpit.js \
-	pkg/base1/cockpit-components.js \
 	$(REACT_COMPONENTS) \
 	$(base_GEN) \
 	$(NULL)
@@ -60,6 +59,8 @@ base_BUNDLE = \
 	pkg/base1/jquery.min.js \
 	pkg/base1/mustache.min.js \
 	pkg/base1/patterns.min.js \
+	pkg/base1/react.min.js \
+	$(REACT_COMPONENTS:.js=.min.js) \
 	$(NULL)
 
 pkg/base1/angular.min.js: pkg/base1/angular.js
@@ -80,9 +81,6 @@ pkg/base1/react.min.js: pkg/base1/react.js
 	$(MIN_JS_RULE)
 pkg/base1/redux.min.js: pkg/base1/redux.js
 	$(MIN_JS_RULE)
-
-pkg/base1/cockpit-components.js: $(REACT_COMPONENTS)
-	$(AM_V_GEN) $(srcdir)/tools/missing $(srcdir)/tools/jsbundle $@ $^
 
 install-data-local::
 	$(MKDIR_P) $(DESTDIR)$(basedebugdir)
@@ -141,8 +139,6 @@ CLEANFILES += \
 	pkg/base1/redux.min.js \
 	pkg/base1/require.min.js \
 	pkg/base1/term.min.js \
-	pkg/base1/cockpit-components.js \
-	pkg/base1/cockpit-components.min.js \
 	$(REACT_COMPONENTS) \
 	$(base_GEN) \
 	$(base_GEN:.js=.min.js) \
@@ -161,8 +157,6 @@ EXTRA_DIST += \
 	pkg/base1/react.min.js \
 	pkg/base1/redux.min.js \
 	pkg/base1/term.min.js \
-	pkg/base1/cockpit-components.js \
-	pkg/base1/cockpit-components.min.js \
 	pkg/base1/test-dbus-common.js \
 	$(REACT_COMPONENTS) \
 	$(base_BUNDLE) \
