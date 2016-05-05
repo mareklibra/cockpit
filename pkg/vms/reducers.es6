@@ -29,23 +29,19 @@ function vms (state = [], action) {
   //  };
 
   console.log('reducer vms: action=' + JSON.stringify(action));
-  var newState = Object.assign({}, state);
 
   switch (action.type) {
+    case 'CLEAR_VMS': // remove all VMs from the store
+      return {};
+      // return action.vms; // replace current VM data with the ones provided by action
     case 'ADD_VM':
-      return newState;// TODO
-    case 'REMOVE_VM':
-      return newState;// TODO
-    case 'SET_VMS':
-      return action.vms; // replace current VM data with the ones provided by action
+      var stateDiff = {};
+      stateDiff[action.vm.id] = action.vm;
+      return Object.assign({}, state, stateDiff);
     case 'DESTROY_VM':
-      // TODO: remove the VM from local state?
+      // TODO: remove the VM from store?
       return state;
-    case 'MY_CUSTOM_ACTION':
-      newState[action.vmId].counter++;
-      return newState;
-    // by default all reducers should return initial state on unknown actions
-    default:
+    default: // by default all reducers should return initial state on unknown actions
       return state;
   }
 }

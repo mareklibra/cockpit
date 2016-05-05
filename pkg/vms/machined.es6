@@ -1,4 +1,8 @@
-import { dbus, setVms } from 'vms/actions';
+/*
+ * Provider for machined
+ */
+
+import { dbus, clearVms, addVm } from 'vms/actions';
 
 export default {
   name: 'machined',
@@ -12,7 +16,11 @@ export default {
         method: 'ListMachines'
       })).then(result => {
         // assuming result is a list of VMS, TODO: verify
-        dispatch(setVms(result));
+        dispatch(clearVms());
+
+        // TODO: for each vm_name from the list, get detail
+        // TODO: dispatch ADD_VM with subset of VM details which can be retrieved by the Machined provider
+        dispatch(addVm({id:'id1', name: 'name1', IPs: ['192.168.122.1']}));
       })
     }
   },

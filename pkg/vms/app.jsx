@@ -2,9 +2,8 @@ define([
   "react",
   "base1/cockpit",
   "vms/dashboard",
-  "vms/hostvmslist",
-  "vms/actions"
-], function (React, cockpit, Dashboard, HostVmsList, { myCustomAction }) {
+  "vms/hostvmslist"
+], function (React, cockpit, Dashboard, HostVmsList) {
   // App is a 'Smart' component - interacts with Redux store
   var appBody = React.createClass({
     render: function() {

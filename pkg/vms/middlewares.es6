@@ -20,11 +20,14 @@ function getVirtProvider (store) {
     const deferred = cockpit.defer();
     // TODO: discover host capabilities by dispatching dbus() actions
 
-    if (true /* TODO: detect machined */) {
+    if (false /*TODO: Detect VDSM*/) {
+      // TODO: dispatch/resolve VDSM provider
+    } else if (true /* TODO: detect machined */) {
       store.dispatch(setProvider(Machined));
       deferred.resolve(Machined);
+    } else { //  no provider available
+      // TODO: throw exception
     }
-
     return deferred.promise;
   }
 }

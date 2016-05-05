@@ -1,3 +1,8 @@
+/**
+ * All actions dispatchableby in the application
+ */
+
+// --- Provider actions -----------------------------------------
 export function readHostVmsAction () {
   return {
     type: 'VIRT',
@@ -13,6 +18,7 @@ export function destroyVm(name) {
   }
 }
 
+// --- Store actions --------------------------------------------
 export function setProvider(provider) {
   return {
     type: 'SET_PROVIDER',
@@ -20,13 +26,26 @@ export function setProvider(provider) {
   }
 }
 
-export function setVms(vms) {
+export function clearVms(vms) {
   return {
-    type: 'SET_VMS',
-    vms
+    type: 'CLEAR_VMS'
   }
 }
 
+export function addVm({ id, name, IPs }) {
+  var vm = {
+    id,
+    name,
+    IPs
+  };
+
+  return {
+    type: 'ADD_VM',
+    vm
+  }
+}
+
+// --- DBus actions ---------------------------------------------
 export function dbus ({ name, iface, path, method, args = []}) {
   return {
     type: 'DBUS',
@@ -36,11 +55,4 @@ export function dbus ({ name, iface, path, method, args = []}) {
     method,
     args
   }
-}
-
-export function myCustomAction (vmId) {
-  return {
-    type: 'MY_CUSTOM_ACTION',
-    vmId: vmId
-  };
 }

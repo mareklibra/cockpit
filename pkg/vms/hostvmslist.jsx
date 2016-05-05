@@ -20,7 +20,6 @@ define([
   };
 
   var renderVm = function (vm) {
-    // see ovirt.html:209
     return (
       <div className="list-group-item list-view-pf-stacked">
         <div className="list-view-pf-main-info">
