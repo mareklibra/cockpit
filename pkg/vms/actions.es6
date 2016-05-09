@@ -3,11 +3,18 @@
  */
 
 // --- Provider actions -----------------------------------------
-export function readHostVmsAction (store) {
+export function getAllVms () {
   return {
     type: 'VIRT',
-    method: 'GET_ALL_VMS',
-    store
+    method: 'GET_ALL_VMS'
+  };
+}
+
+export function getVmDetail (lookupId) {
+  return {
+    type: 'VIRT',
+    method: 'GET_VM_DETAIL',
+    lookupId // provider-specific (i.e. machined: dbus-path)
   };
 }
 
@@ -16,6 +23,14 @@ export function shutdownVm (name) {
     type: 'VIRT',
     method: 'SHUTDOWN_VM',
     name
+  }
+}
+
+export function initProvider (store) {
+  return {
+    type: 'VIRT',
+    method: 'INIT',
+    store
   }
 }
 
@@ -48,13 +63,15 @@ export function addVm ({ id, name, IPs, state }) {
 }
 
 // --- DBus actions ---------------------------------------------
-export function dbus ({ name, iface, path, method = 'ownProperties', args = []}) {
+export function dbus ({ name, iface, path, method, args = [], signal, handler}) {
   return {
     type: 'DBUS',
     name,
     iface,
     path,
     method,
-    args
+    args,
+    signal,
+    handler
   }
 }

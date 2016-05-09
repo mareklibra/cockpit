@@ -1,5 +1,5 @@
 import cockpit from 'base1/cockpit';
-import { setProvider } from 'vms/actions';
+import { setProvider, initProvider } from 'vms/actions';
 import Machined from 'vms/machined';
 
 export function thunk({ dispatch, getState }) {
@@ -28,6 +28,7 @@ function getVirtProvider(store) {
     } else if (true /* TODO: detect machined */) {
       console.log('store.dispatch(setProvider(Machined))');
       store.dispatch(setProvider(Machined));
+      store.dispatch(initProvider(store));
       deferred.resolve(Machined);
     } else { //  no provider available
       // TODO: throw exception
@@ -68,22 +69,27 @@ const wait_valid = (proxy, callback) => {
     }
   });
 }
+
+var dbusClients = {};
+
 export function dbus({ dispatch, getState }) {
   console.log('dbus-middleware');
 
   return next => action => {
     if (action.type === 'DBUS') {
-      // TODO cache clients for the same name?
       console.log(`dbus-middleware: action: ${action.name}, interface: ${action.iface}, path: ${action.path}, method: ${action.ownProperties}, args: ${action.args}`);
-      const client = cockpit.dbus(action.name);
-      const proxy = client.proxy(action.iface, action.path);
 
+      var client = dbusClients[action.name];
+      if (!client) { // cache dbus clients of the same name
+        client = cockpit.dbus(action.name);
+        dbusClients[action.name] = client;
+      }
+
+      const proxy = client.proxy(action.iface, action.path);
       const deferred = cockpit.defer();
       proxy.wait(() => {
         if (proxy.valid) {
-          if (action.method === 'ownProperties') { // get object proprties only
-            deferred.resolve(proxy.data);
-          } else { // method call
+          if (action.method) { // method call
             proxy[action.method]
               .apply(null, action.args)
               .done(deferred.resolve)
@@ -91,6 +97,11 @@ export function dbus({ dispatch, getState }) {
                 console.log('DBus method call failed: ' + reason);
                 deferred.reject();
               });
+          } else if (action.signal) { // register signal handler
+            proxy.addEventListener('signal', action.handler);
+            deferred.resolve({});
+          } else { // get object properties only
+            deferred.resolve(proxy.data);
           }
         } else {
           console.warn('dbus proxy not valid');

@@ -3,7 +3,7 @@ import Redux from 'base1/redux';
 import cockpit from 'base1/cockpit';
 import store from 'vms/store';
 import App from 'vms/app';
-import {readHostVmsAction} from 'vms/actions';
+import {initProvider, getAllVms} from 'vms/actions';
 
 console.log('index.es6: initial state: ' + JSON.stringify(store.getState()));
 
@@ -20,4 +20,5 @@ store.subscribe(render);
 render();
 
 // initiate data retrieval
-store.dispatch(readHostVmsAction(store));
+store.dispatch(initProvider(store));
+store.dispatch(getAllVms());
