@@ -9,7 +9,7 @@ console.log('index.es6: initial state: ' + JSON.stringify(store.getState()));
 
 function render() {
   React.render(
-    <App store={store} />,
+    <App/>,
     document.getElementById('app'));
 }
 
