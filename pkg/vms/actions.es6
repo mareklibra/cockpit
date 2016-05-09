@@ -3,36 +3,37 @@
  */
 
 // --- Provider actions -----------------------------------------
-export function readHostVmsAction () {
+export function readHostVmsAction (store) {
   return {
     type: 'VIRT',
-    method: 'GET_ALL_VMS'
+    method: 'GET_ALL_VMS',
+    store
   };
 }
 
-export function destroyVm(name) {
+export function shutdownVm (name) {
   return {
     type: 'VIRT',
-    method: 'DESTROY_VM',
+    method: 'SHUTDOWN_VM',
     name
   }
 }
 
 // --- Store actions --------------------------------------------
-export function setProvider(provider) {
+export function setProvider (provider) {
   return {
     type: 'SET_PROVIDER',
     provider
   }
 }
 
-export function clearVms(vms) {
+export function clearVms (vms) {
   return {
     type: 'CLEAR_VMS'
   }
 }
 
-export function addVm({ id, name, IPs, state }) {
+export function addVm ({ id, name, IPs, state }) {
   var vm = {
     id,
     name,

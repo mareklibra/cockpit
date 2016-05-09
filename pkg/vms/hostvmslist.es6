@@ -1,5 +1,7 @@
 import React, { PropTypes }  from "base1/react";
-const { object } = PropTypes
+import { shutdownVm } from "vms/actions"
+
+const { object, func } = PropTypes
 
 function renderNoVm () {
   return (
@@ -16,9 +18,21 @@ function renderNoVm () {
     </div>
 )}
 
-function renderVm (vm) {
+function renderVm (dispatch, vm) {
   return (
     <div className="list-group-item list-view-pf-stacked">
+      <div className="list-view-pf-actions">
+        <button className="btn btn-default">Action</button>
+        <div className="dropdown pull-right dropdown-kebab-pf">
+          <button className="btn btn-link dropdown-toggle" type="button" id="dropdownKebabRight" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+            <span className="fa fa-ellipsis-v"></span>
+          </button>
+          <ul className="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownKebabRight">
+              <li onClick={() => {dispatch(shutdownVm(vm.name))}}><a href="#"><img src="images/vm_shutdown.png"/> Shutdown</a></li>
+          </ul>
+        </div>
+      </div>
+
       <div className="list-view-pf-main-info">
         <div className="list-view-pf-left">
           {vm.state}
@@ -43,13 +57,13 @@ function renderVm (vm) {
     </div>
 )}
 
-function HostVmsList({ vms }) {
+function HostVmsList({ vms, dispatch }) {
   var rows = [];
   if (Object.keys(vms).length === 0) {
     rows = renderNoVm();
   } else {
     Object.keys(vms).forEach(function (vmId) {
-      rows.push(renderVm(vms[vmId]));
+      rows.push(renderVm(dispatch, vms[vmId]));
     });
   }
 
@@ -66,7 +80,8 @@ function HostVmsList({ vms }) {
 }
 
 HostVmsList.propTypes = {
-  vms: object.isRequired
+  vms: object.isRequired,
+  dispatch: func.isRequired
 }
 
 export default HostVmsList

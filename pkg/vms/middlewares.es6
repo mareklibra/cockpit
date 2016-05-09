@@ -88,7 +88,7 @@ export function dbus({ dispatch, getState }) {
               .apply(null, action.args)
               .done(deferred.resolve)
               .fail(reason => {
-                console.log('DBus call method failed: ' + reason);
+                console.log('DBus method call failed: ' + reason);
                 deferred.reject();
               });
           }
@@ -104,6 +104,3 @@ export function dbus({ dispatch, getState }) {
     return next(action);
   }
 }
-
-
-

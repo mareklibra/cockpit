@@ -9,7 +9,7 @@ console.log('index.es6: initial state: ' + JSON.stringify(store.getState()));
 
 function render() {
   React.render(
-    <App/>,
+    <App store={store}/>,
     document.getElementById('app'));
 }
 
@@ -20,4 +20,4 @@ store.subscribe(render);
 render();
 
 // initiate data retrieval
-store.dispatch(readHostVmsAction());
+store.dispatch(readHostVmsAction(store));

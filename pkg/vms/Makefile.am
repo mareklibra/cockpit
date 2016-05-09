@@ -1,4 +1,6 @@
 SRCDIR=pkg/vms
+vmsdir = $(pkgdatadir)/vms
+
 
 vms_MODULES = \
 	$(SRCDIR)/_index.js \
@@ -11,6 +13,11 @@ vms_MODULES = \
 	$(SRCDIR)/app.js \
 	$(SRCDIR)/hostvmslist.js \
 	$(NULL)
+
+vmsimagesdir = $(vmsdir)/images
+vmsimages_DATA = \
+        $(SRCDIR)/images/vm_shutdown.png \
+        $(NULL)
 
 vms_TESTS = \
 	$(NULL)
@@ -26,8 +33,6 @@ nodist_vms_DATA = \
 vms_DATA = \
 	$(SRCDIR)/manifest.json \
 	$(NULL)
-
-vmsdir = $(pkgdatadir)/vms
 
 vmsdebugdir = $(debugdir)$(vmsdir)
 vmsdebug_DATA = \

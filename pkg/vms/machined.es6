@@ -3,12 +3,12 @@
  */
 import cockpit from 'base1/cockpit';
 import { dbus, clearVms, addVm } from 'vms/actions';
-import store from 'vms/store';
+// import store from 'vms/store';
 
 export default {
   name: 'machined',
 
-  GET_ALL_VMS () {
+  GET_ALL_VMS ({store}) {
     console.log(`${this.name}.GET_ALL_VMS():`);
 
     store.dispatch(dbus({ // call method
@@ -39,6 +39,7 @@ export default {
             var name = vmDetail['Name'];
             var state = vmDetail['State'];
 
+            // TODO: compute uptime
             // TODO: read addresses and OS
             store.dispatch(addVm({id, name, IPs: undefined, state}));
           });
@@ -51,8 +52,7 @@ export default {
     return null;
   },
 
-  // TODO: reimplement
-  DESTROY_VM ({ name }) {
+  SHUTDOWN_VM ({ name }) {
     return dbus({
       name: 'org.freedesktop.machine1',
       iface: 'org.freedesktop.machine1.Manager',
