@@ -46,39 +46,6 @@ function vms (state = [], action) {
   }
 }
 
-//var readHostVms = function () {
-//  var client = cockpit.dbus('org.freedesktop.machine1');
-//  var proxy = client.proxy('org.freedesktop.machine1.Manager', '/org/freedesktop/machine1');
-//  proxy.wait(function () {
-//    if (proxy.valid) {
-//      proxy.ListMachines().done(function (result) {
-//        // result: [["qemu-2-mySecondVM","vm","libvirt-qemu","/org/freedesktop/machine1/machine/qemu_2d2_2dmySecondVM"]]
-//        // machine name, machine class, an identifier for the service that registered the machine and the machine object path.
-//        console.log('ListMachines() result: ' + JSON.stringify(result));
-//
-//        //var vmClient = cockpit.dbus('org.freedesktop.machine1');
-//        var proxy2 = client.proxy('org.freedesktop.machine1.Machine', '/org/freedesktop/machine1/machine/qemu_2d2_2dmySecondVM');
-//        proxy2.wait(function () {
-//          if (proxy.valid) {
-//            console.dir(proxy2);
-//            /*              proxy2.GetMachine('qemu-2-mySecondVM').done(function (result) {
-//             console.log('GetMachine() result: ' + JSON.stringify(result));
-//             }).fail(function (ex) {
-//             console.log('GetMachine() failed: ' + ex);// TODO
-//             });*/
-//          } else {
-//            console.log('Proxy not valid!');
-//          }
-//        });
-//        // TODO: dispatch actions
-//      }).fail(function (ex) {
-//        // TODO: handle ListMachines failure
-//        console.log('ListMachines() failed: ' + ex);
-//      });
-//    }
-//  });
-//};
-
 export default combineReducers({
   config,
   vms

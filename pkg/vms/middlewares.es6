@@ -14,7 +14,7 @@ export function thunk({ dispatch, getState }) {
   };
 }
 
-function getVirtProvider (store) {
+function getVirtProvider(store) {
   const state = store.getState();
   if (state.config.provider) {
     return cockpit.resolve(state.config.provider);
@@ -62,7 +62,7 @@ export function virt(store) {
 }
 
 const wait_valid = (proxy, callback) => {
-  proxy.wait(function() {
+  proxy.wait(function () {
     if (proxy.valid) {
       callback();
     }
@@ -70,18 +70,28 @@ const wait_valid = (proxy, callback) => {
 }
 export function dbus({ dispatch, getState }) {
   console.log('dbus-middleware');
+
   return next => action => {
     if (action.type === 'DBUS') {
       // TODO cache clients for the same name?
-      console.log(`dbus-middleware: action: ${action.name}, interface: ${action.interface}, path: ${action.path}`);
+      console.log(`dbus-middleware: action: ${action.name}, interface: ${action.iface}, path: ${action.path}, method: ${action.ownProperties}, args: ${action.args}`);
       const client = cockpit.dbus(action.name);
       const proxy = client.proxy(action.iface, action.path);
 
       const deferred = cockpit.defer();
-      console.log('deferred');
       proxy.wait(() => {
         if (proxy.valid) {
-          proxy[action.method].apply(null, action.args).done(deferred.resolve).fail(deferred.reject);
+          if (action.method === 'ownProperties') { // get object proprties only
+            deferred.resolve(proxy.data);
+          } else { // method call
+            proxy[action.method]
+              .apply(null, action.args)
+              .done(deferred.resolve)
+              .fail(reason => {
+                console.log('DBus call method failed: ' + reason);
+                deferred.reject();
+              });
+          }
         } else {
           console.warn('dbus proxy not valid');
           // TODO dispatch error action?

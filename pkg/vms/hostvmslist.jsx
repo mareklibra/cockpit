@@ -24,15 +24,16 @@ define([
       <div className="list-group-item list-view-pf-stacked">
         <div className="list-view-pf-main-info">
           <div className="list-view-pf-left">
-            StatusIcon
+            {vm.state}
           </div>
 
           <div className="list-view-pf-body">
             <div className="list-view-pf-description">
               <div className="list-group-item-heading">
-                <a>{vm.name}</a>
-                <small>{vm.ips}</small>
-                <small>{vm.fqdn}</small>
+                <a>{vm.name}</a><br/>
+                <small>id: {vm.id}</small><br/>
+                <small>IP: {vm.IPs}</small><br/>
+                <small>FQDN: {vm.fqdn}</small><br/>
                 <small>Up for: {vm.uptime} s</small>
               </div>
             </div>

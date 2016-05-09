@@ -33,11 +33,12 @@ export function clearVms(vms) {
   }
 }
 
-export function addVm({ id, name, IPs }) {
+export function addVm({ id, name, IPs, state }) {
   var vm = {
     id,
     name,
-    IPs
+    IPs,
+    state
   };
 
   return {
@@ -47,7 +48,7 @@ export function addVm({ id, name, IPs }) {
 }
 
 // --- DBus actions ---------------------------------------------
-export function dbus ({ name, iface, path, method, args = []}) {
+export function dbus ({ name, iface, path, method = 'ownProperties', args = []}) {
   return {
     type: 'DBUS',
     name,
