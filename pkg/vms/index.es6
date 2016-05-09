@@ -20,4 +20,4 @@ store.subscribe(render);
 render();
 
 // initiate data retrieval
-store.dispatch(readHostVmsAction(store));
+store.dispatch(readHostVmsAction());

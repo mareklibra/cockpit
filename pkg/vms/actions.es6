@@ -3,11 +3,10 @@
  */
 
 // --- Provider actions -----------------------------------------
-export function readHostVmsAction (store) {
+export function readHostVmsAction () {
   return {
     type: 'VIRT',
-    method: 'GET_ALL_VMS',
-    store
+    method: 'GET_ALL_VMS'
   };
 }
 
