@@ -76,9 +76,7 @@ function HostVmsList({ vms, dispatch }) {
   if (vms.length === 0) {
     rows = renderNoVm();
   } else {
-    vms.forEach(function (vm) {
-      rows.push(renderVm(dispatch, vm));
-    });
+    rows = vms.map(vm => {return renderVm(dispatch, vm)});
   }
 
   return (
