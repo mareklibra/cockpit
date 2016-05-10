@@ -36,23 +36,6 @@ function config (state = {provider: null}, action) {
 }
 
 function vms (state = [], action) {
-  //state = state || {
-  //    'example-vm-id-1' : {
-  //      id: 'example-vm-id-1',
-  //      name: 'Name of VM1',
-  //      ips: ['192.168.1.2', '192.168.1.3'],
-  //      fqdn: 'my.fqdn.com',
-  //      uptime: 0
-  //    },
-  //    'example-vm-id-2' : {
-  //      id: 'example-vm-id-2',
-  //      name: 'Name of VM2',
-  //      ips: ['192.168.1.4'],
-  //      fqdn: 'my2.fqdn.com',
-  //      uptime: 0
-  //    }
-  //  };
-
   console.log('reducer vms: action=' + JSON.stringify(action));
 
   switch (action.type) {

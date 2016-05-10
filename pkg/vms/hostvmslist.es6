@@ -1,9 +1,9 @@
-import React, { PropTypes }  from "base1/react";
-import { shutdownVm } from "vms/actions"
+import React, { PropTypes } from "base1/react";
+import { shutdownVm } from "vms/actions";
 
-const { object, func } = PropTypes
+const { object, func } = PropTypes;
 
-function renderNoVm () {
+function NoVm () {
   return (
     <div className="cockpit-log-warning">
       <div className="blank-slate-pf">
@@ -16,7 +16,8 @@ function renderNoVm () {
         </span>
       </div>
     </div>
-)}
+  )
+}
 
 function getStateIcon (state) {
   switch (state) {
@@ -24,14 +25,14 @@ function getStateIcon (state) {
     case 'up':
       return (<span className="pficon pficon-ok"/>);
     case undefined:
-      return (<div/>);
+      return (<div />);
     default:
       return (<small>{state}</small>);
   }
 }
 
-function renderVm (dispatch, vm) {
-  var stateIcon = getStateIcon(vm.state);
+function Vm ({ vm, onShutdown }) {
+  const stateIcon = getStateIcon(vm.state);
 
   return (
     <div className="list-group-item list-view-pf-stacked">
@@ -42,7 +43,7 @@ function renderVm (dispatch, vm) {
             <span className="fa fa-ellipsis-v"></span>
           </button>
           <ul className="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownKebabRight">
-              <li onClick={() => {dispatch(shutdownVm(vm.name))}}><a href="#"><span className="fa fa-power-off"/> Shutdown</a></li>
+              <li onClick={onShutdown}><a href="#"><span className="fa fa-power-off"/> Shutdown</a></li>
           </ul>
         </div>
       </div>
@@ -72,18 +73,18 @@ function renderVm (dispatch, vm) {
 )}
 
 function HostVmsList({ vms, dispatch }) {
-  var rows = [];
+  let rows = [];
   if (vms.length === 0) {
-    rows = renderNoVm();
+    rows = <NoVm />;
   } else {
-    rows = vms.map(vm => {return renderVm(dispatch, vm)});
+    rows = vms.map(vm => (<Vm vm={vm} onShutdown={() => dispatch(shutdownVm(vm.name))} />));
   }
 
   return (
-    <div className = "container-fluid">
-      <div className = "panel panel-default">
-        <div className = "panel-heading">Running Virtual Machines</div>
-        <div className = "list-group list-view-pf">
+    <div className="container-fluid">
+      <div className="panel panel-default">
+        <div className="panel-heading">Running Virtual Machines</div>
+        <div className="list-group list-view-pf">
           {rows}
         </div>
       </div>

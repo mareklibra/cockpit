@@ -3,7 +3,7 @@ import Redux from 'base1/redux';
 import cockpit from 'base1/cockpit';
 import store from 'vms/store';
 import App from 'vms/app';
-import {initProvider, getAllVms} from 'vms/actions';
+import { initProvider, getAllVms } from 'vms/actions';
 
 console.log('index.es6: initial state: ' + JSON.stringify(store.getState()));
 
