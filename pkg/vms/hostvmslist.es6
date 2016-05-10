@@ -18,7 +18,21 @@ function renderNoVm () {
     </div>
 )}
 
+function getStateIcon (state) {
+  switch (state) {
+    case 'running':
+    case 'up':
+      return (<span className="pficon pficon-ok"/>);
+    case undefined:
+      return (<div/>);
+    default:
+      return (<small>{state}</small>);
+  }
+}
+
 function renderVm (dispatch, vm) {
+  var stateIcon = getStateIcon(vm.state);
+
   return (
     <div className="list-group-item list-view-pf-stacked">
       <div className="list-view-pf-actions">
@@ -28,14 +42,14 @@ function renderVm (dispatch, vm) {
             <span className="fa fa-ellipsis-v"></span>
           </button>
           <ul className="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownKebabRight">
-              <li onClick={() => {dispatch(shutdownVm(vm.name))}}><a href="#"><img src="images/vm_shutdown.png"/> Shutdown</a></li>
+              <li onClick={() => {dispatch(shutdownVm(vm.name))}}><a href="#"><span className="fa fa-power-off"/> Shutdown</a></li>
           </ul>
         </div>
       </div>
 
       <div className="list-view-pf-main-info">
         <div className="list-view-pf-left">
-          {vm.state}
+          {stateIcon}
         </div>
 
         <div className="list-view-pf-body">
@@ -50,7 +64,7 @@ function renderVm (dispatch, vm) {
           </div>
 
           <div className="list-view-pf-additional-info">
-            Additional info
+            TBD: Usage Charts
           </div>
         </div>
       </div>
