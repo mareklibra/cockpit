@@ -61,7 +61,7 @@ export function virt(store) {
     return next(action);
   }
 }
-
+/*
 const wait_valid = (proxy, callback) => {
   proxy.wait(function () {
     if (proxy.valid) {
@@ -69,7 +69,7 @@ const wait_valid = (proxy, callback) => {
     }
   });
 }
-
+*/
 var dbusClients = {};
 
 export function dbus({ dispatch, getState }) {
