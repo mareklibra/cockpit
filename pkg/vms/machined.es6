@@ -2,7 +2,7 @@
  * Provider for machined
  */
 import cockpit from 'base1/cockpit';
-import { dbus, clearVms, addVm, getVmDetail } from 'vms/actions';
+import { dbus, clearVms, addVm, deleteVm, getVmDetail } from 'vms/actions';
 
 export default {
   SHUTDOWN_VM ({ name }) {
@@ -18,7 +18,7 @@ export default {
   name: 'machined',
   store: null,
 
-  INIT ({store}) {
+  INITIALIZE ({store}) {
     console.log(`${this.name}.INIT()`);
     this.store = store;
 
@@ -35,8 +35,8 @@ export default {
             store.dispatch(getVmDetail(path));
             break;
           case 'MachineRemoved':
-            // TODO: handle it
             console.log('Machine removed: ' + JSON.stringify({event, name, args}));
+            store.dispatch(deleteVm({name: args[0]}));
             break;
           default:
             console.error(`machined.INIT(): unhandled signal ${name}`);

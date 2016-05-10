@@ -59,11 +59,11 @@ function renderVm (dispatch, vm) {
 
 function HostVmsList({ vms, dispatch }) {
   var rows = [];
-  if (Object.keys(vms).length === 0) {
+  if (vms.length === 0) {
     rows = renderNoVm();
   } else {
-    Object.keys(vms).forEach(function (vmId) {
-      rows.push(renderVm(dispatch, vms[vmId]));
+    vms.forEach(function (vm) {
+      rows.push(renderVm(dispatch, vm));
     });
   }
 

@@ -20,5 +20,4 @@ store.subscribe(render);
 render();
 
 // initiate data retrieval
-store.dispatch(initProvider(store));
 store.dispatch(getAllVms());

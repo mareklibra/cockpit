@@ -29,7 +29,7 @@ export function shutdownVm (name) {
 export function initProvider (store) {
   return {
     type: 'VIRT',
-    method: 'INIT',
+    method: 'INITIALIZE',
     store
   }
 }
@@ -62,6 +62,13 @@ export function addVm ({ id, name, IPs, state }) {
   }
 }
 
+export function deleteVm({id, name}) { // either id or name must be specified
+  return {
+    type: 'DELETE_VM',
+    id,
+    name
+  }
+}
 // --- DBus actions ---------------------------------------------
 export function dbus ({ name, iface, path, method, args = [], signal, handler}) {
   return {
