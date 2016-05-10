@@ -5,16 +5,6 @@ import cockpit from 'base1/cockpit';
 import { dbus, clearVms, addVm, deleteVm, getVmDetail } from 'vms/actions';
 
 export default {
-  SHUTDOWN_VM ({ name }) {
-    return dbus({
-      name: 'org.freedesktop.machine1',
-      iface: 'org.freedesktop.machine1.Manager',
-      path: '/org/freedesktop/machine1',
-      method: 'TerminateMachine',
-      args: [name]
-    })
-  },
-
   name: 'machined',
   store: null,
 
@@ -94,5 +84,16 @@ export default {
 
     // stop action processing, the action was splitted among others
     return null;
+  },
+
+  SHUTDOWN_VM ({ name }) {
+    return dbus({
+      name: 'org.freedesktop.machine1',
+      iface: 'org.freedesktop.machine1.Manager',
+      path: '/org/freedesktop/machine1',
+      method: 'TerminateMachine',
+      args: [name]
+    })
   }
+
 };
