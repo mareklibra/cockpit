@@ -70,7 +70,7 @@ export function deleteVm({id, name}) { // either id or name must be specified
   }
 }
 // --- DBus actions ---------------------------------------------
-export function dbus ({ name, iface, path, method, args = [], signal, handler}) {
+export function dbus ({ name, iface, path, method, args = [], signal}) {
   return {
     type: 'DBUS',
     name,
@@ -78,7 +78,6 @@ export function dbus ({ name, iface, path, method, args = [], signal, handler}) 
     path,
     method,
     args,
-    signal,
-    handler
+    signal
   }
 }
