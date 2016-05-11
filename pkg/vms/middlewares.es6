@@ -23,33 +23,65 @@ function getVirtProvider(store) {
     console.log('Discovering provider');
     // TODO: discover host capabilities by dispatching dbus() actions
 
+    let provider = null;
     if (false /*TODO: Detect VDSM*/) {
       // TODO: dispatch/resolve VDSM provider
     } else if (true /* TODO: detect machined */) {
-      console.log('store.dispatch(setProvider(Machined))');
-      store.dispatch(setProvider(Machined));
-      store.dispatch(initProvider(store));
-      deferred.resolve(Machined);
-    } else { //  no provider available
-      // TODO: throw exception
+      console.log('Selecting Machined as the VIRT provider.');
+      provider = Machined;
     }
+
+    if (!provider) { //  no provider available
+      deferred.reject();
+    } else {
+      // First we set the provider to the `config` part of the store,
+      store.dispatch(setProvider(provider));
+      // and then we dispatch special 'VIRT' method to initialize it.
+      // Since the provider will have already been set in config,
+      // the virt middleware will correctly dispatch this action.
+      // Providers are expected to return promise as a part of initialization
+      // so we can resolve only after the provider had time to properly initialize.
+      store
+        .dispatch(initProvider(store))
+        .then(() => deferred.resolve(provider))
+        .catch(deferred.reject);
+    }
+
     return deferred.promise;
   }
 }
 
+/**
+ * Middleware handling actions of type 'VIRT'.
+ *
+ * Dispatches VIRT methods based on currently set virt provider. In case no provider is set yet,
+ * it performs discovery and chooses the best available provider (Machined, VDSM, ...).
+ *
+ * In case it handles a 'VIRT' action it returns promise that resolves to the result of dispatching value
+ * obtained from invoking the provider method.
+ *
+ * This combined with provider methods resulting in promise objects (e.g. in conjunction with the
+ * {@link dbus} middleware) enables chained calls like the following:
+ *
+ * <pre><code>
+ *   store.dispatch({
+ *     type: 'VIRT',
+ *     method: 'SHUTDOWN_VM',
+ *     name: 'vm1'
+ *   }).then(() => alert('VM successfully shut down!'))
+ * </code></pre>
+ *
+ * Thus treating the entire provider method invocation like a promise.
+ */
 export function virt(store) {
   console.log('virt-middleware');
   return next => action => {
     if (action.type === 'VIRT') {
-      getVirtProvider(store).then(provider => {
+      return getVirtProvider(store).then(provider => {
         const method = action.method;
         if (method in provider) {
-          console.log(`virt-middleware: Calling ${provider.name}.${method} with action: ` + JSON.stringify(action));
-          var nextAction = provider[method](action)
-          if (nextAction) {
-            console.log(`virt-middleware: nextAction to dispatch: ` + JSON.stringify(nextAction));
-            store.dispatch(nextAction);
-          }
+          console.log(`virt-middleware: Calling ${provider.name}.${method}(${JSON.stringify(action)})`);
+          return store.dispatch(provider[method](action));
         } else {
           console.warn(`method: '${method}' is not supported by provider: '${provider.name}'`);
         }
@@ -61,16 +93,8 @@ export function virt(store) {
     return next(action);
   }
 }
-/*
-const wait_valid = (proxy, callback) => {
-  proxy.wait(function () {
-    if (proxy.valid) {
-      callback();
-    }
-  });
-}
-*/
-var dbusClients = {};
+
+const dbusClients = {};
 
 export function dbus({ dispatch, getState }) {
   console.log('dbus-middleware');
@@ -95,11 +119,11 @@ export function dbus({ dispatch, getState }) {
               .done(deferred.resolve)
               .fail(reason => {
                 console.log('DBus method call failed: ' + reason);
-                deferred.reject();
+                deferred.reject(reason);
               });
           } else if (action.signal) { // register signal handler
-            proxy.addEventListener('signal', action.handler);
-            deferred.resolve({});
+            proxy.addEventListener('signal', action.signal);
+            deferred.resolve();
           } else { // get object properties only
             deferred.resolve(proxy.data);
           }
