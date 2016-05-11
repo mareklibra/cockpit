@@ -2,14 +2,33 @@
  * Provider for machined
  */
 import cockpit from 'base1/cockpit';
-import { dbus, clearVms, addVm, deleteVm, getVmDetail } from 'vms/actions';
+import { /*dbus,*/ spawnProcess, spawnScript, clearVms, updateOrAddVm, deleteVm, getVm, getAllVms, scheduleDelayedAction } from 'vms/actions';
+import $ from 'jquery';
+
+function toMegaBytes(amount, currentUnit) {
+  console.log(`toMegaBytes('${amount}', '${currentUnit}') `);
+  switch (currentUnit) {
+    case 'KiB':
+      return amount / 1024;
+    default:
+      console.error(`toMegaBytes(): unknown unit: ${currentUnit}`);
+  }
+  return amount;
+}
 
 export default {
   name: 'machined',
 
+  /**
+   * Register machined signal handlers
+   *
+   * @returns {Function}
+   */
   INIT () {
     console.log(`${this.name}.INIT()`);
 
+    return {type: 'NONE'}
+/*
     return dispatch => dispatch(dbus({
       name: 'org.freedesktop.machine1',
       iface: 'org.freedesktop.machine1.Manager',
@@ -19,7 +38,7 @@ export default {
           case 'MachineNew':
             console.log('New machine detected: ' + JSON.stringify({ event, name, args }));
             const path = args[1]; // /org/freedesktop/machine1/machine/qemu_2d6_2dmySecondVM
-            dispatch(getVmDetail(path));
+//            dispatch(getVmDetail(path)); TODO: change with libvirt
             break;
           case 'MachineRemoved':
             console.log('Machine removed: ' + JSON.stringify({ event, name, args }));
@@ -28,57 +47,98 @@ export default {
           default:
             console.error(`machined.INIT(): unhandled signal ${name}`);
         }
-      }}));
+      }}));*/
   },
 
-  GET_VM_DETAIL ({ lookupId: path }) {
-    console.log(`${this.name}.GET_VM_DETAIL()`);
+  /**
+   * read VM properties (virsh)
+   *
+   * @param VM name
+   * @returns {Function}
+   */
+  GET_VM ({ lookupId: name }) {
+    console.log(`${this.name}.GET_VM()`);
 
-    return dispatch => dispatch(dbus({ // get dbus Machine properties
-      name: 'org.freedesktop.machine1',
-      iface: 'org.freedesktop.machine1.Machine',
-      path
-    })).then(vmDetail => {
-      console.log('VM Detail retrieved: ' + JSON.stringify(vmDetail));
-      const { Id: id, Name: name, State: state } = vmDetail;
-      // TODO: compute uptime
-      // TODO: read addresses and OS
-      dispatch(addVm({ id, name, state }));
-    });
-  },
+    return dispatch => {dispatch(
+        spawnProcess({
+          cmd: 'virsh',
+          args: ['-r', 'dumpxml', name]
+        })).then(output => { // output is xml from dumpxml
+//          console.log(`GET_VM() output: ${output}`);
+          const xmlDoc = $.parseXML( output );
 
-  GET_ALL_VMS () {
-    console.log(`${this.name}.GET_ALL_VMS():`);
+          const domainElem = xmlDoc.getElementsByTagName("domain")[0];
+          const osElem = domainElem.getElementsByTagName("os")[0]
+          const currentMemoryElem = domainElem.getElementsByTagName("currentMemory")[0]
 
-    return dispatch => {
-      dispatch(dbus({ // call dbus method
-        name: 'org.freedesktop.machine1',
-        iface: 'org.freedesktop.machine1.Manager',
-        path: '/org/freedesktop/machine1',
-        method: 'ListMachines'
-      })).then(result => {
-        console.log(`${this.name}.GET_ALL_VMS(): list of vms retrieved: ` + JSON.stringify(result));
-        dispatch(clearVms());
+          const name = domainElem.getElementsByTagName("name")[0].childNodes[0].nodeValue
+          const id = domainElem.getElementsByTagName("uuid")[0].childNodes[0].nodeValue
+          const osType = osElem.getElementsByTagName("type")[0].childNodes[0].nodeValue
 
-        // path like '/org/freedesktop/machine1/machine/fedora_2dtree'
-        result
-          .map(vm => ({ clazz: vm[1], path: vm[3] }))
-          .filter(({ clazz }) => clazz === 'vm')
-          .forEach(({ path }) => dispatch(getVmDetail(path)))
-      });
+          const currentMemoryUnit = currentMemoryElem.getAttribute("unit")
+          const currentMemory = toMegaBytes(currentMemoryElem.childNodes[0].nodeValue, currentMemoryUnit);
+
+          dispatch(updateOrAddVm({name, id, osType, currentMemory}));
+          // TODO: uptime
+          // TODO: fqdn
+          // TODO: domain/cpu
+          // TODO: cpu, mem, disk, network usage
+
+          dispatch(spawnProcess({
+              cmd: 'virsh',
+              args: ['-r', 'domstate', name]
+            })).then(output => {
+              const state = output.trim();
+              dispatch(updateOrAddVm({name, state}));
+            });
+        }
+      );
     };
   },
 
+  /**
+   * Initiate read of all VMs
+   *
+   * @returns {Function}
+   */
+  GET_ALL_VMS () {
+    console.log(`${this.name}.GET_ALL_VMS():`);
+    return dispatch => {
+      dispatch(
+        spawnScript({
+          script: 'virsh -r list --all | awk \'$1 == "-" || $1+0 > 0 { print $2 }\''
+        })
+      ).then(
+        output => {
+          let vmNames = output.trim().split(/\r?\n/);
+          console.log(`GET_ALL_VMS: vmNames: ${JSON.stringify(vmNames)}`);
+
+          vmNames.forEach((name) => dispatch(getVm(name)));
+
+          // keep polling
+          dispatch(scheduleDelayedAction(getAllVms()));
+        }
+      );
+    };
+  },
+
+  /**
+   * Invoke shutdown on a VM.
+   *
+   * @param name
+   * @returns {*}
+   */
   SHUTDOWN_VM ({ name }) {
     console.log(`${this.name}.SHUTDOWN_VM():`);
-
+    return {}
+/*TODO
     return dbus({
       name: 'org.freedesktop.machine1',
       iface: 'org.freedesktop.machine1.Manager',
       path: '/org/freedesktop/machine1',
       method: 'TerminateMachine',
       args: [name]
-    })
+    })*/
   }
 
 };

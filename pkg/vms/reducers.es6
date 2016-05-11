@@ -26,10 +26,12 @@ if (!Array.prototype.findIndex) {
 }
 // -------------------------------
 
-function config (state = {provider: null}, action) {
+function config (state = {provider: null, refreshInterval: 10}, action) {
   switch (action.type) {
     case 'SET_PROVIDER':
       return Object.assign({}, state, {provider: action.provider});
+    case 'SET_REFRESH_INTERVAL':
+      return Object.assign({}, state, {provider: action.refreshInterval});
     default:
       return state;
   }
@@ -37,14 +39,24 @@ function config (state = {provider: null}, action) {
 
 function vms (state = [], action) {
   console.log('reducer vms: action=' + JSON.stringify(action));
+  let index;
 
   switch (action.type) {
     case 'CLEAR_VMS': // remove all VMs from the store
       return [];
-    case 'ADD_VM':
-      return [...state, action.vm];
+    case 'UPDATE_ADD_VM':
+      index = action.vm.id ? getFirstIndexOfVm(state, 'id', action.vm.id) : getFirstIndexOfVm(state, 'name', action.vm.name);
+      if (index < 0) { // add
+        return [...state, action.vm];
+      }
+
+      // update by merging
+      const updatedVm = Object.assign({}, state[index], action.vm);
+      return state.slice(0, index)
+        .concat(updatedVm)
+        .concat(state.slice(index+1));
     case 'DELETE_VM':
-      var index = action.id ? getFirstIndexOfVm(state, 'id', action.id) : getFirstIndexOfVm(state, 'name', action.name);
+      index = action.id ? getFirstIndexOfVm(state, 'id', action.id) : getFirstIndexOfVm(state, 'name', action.name);
       return (index < 0) ? (state) :
         (state.slice(0, index).concat(state.slice(index+1)));
     default: // by default all reducers should return initial state on unknown actions

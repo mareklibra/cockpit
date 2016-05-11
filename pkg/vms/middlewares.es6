@@ -1,5 +1,5 @@
 import cockpit from 'base1/cockpit';
-import { setProvider, initProvider } from 'vms/actions';
+import { setProvider, initProvider, getAllVms } from 'vms/actions';
 import Machined from 'vms/machined';
 
 export function thunk({ dispatch, getState }) {
@@ -100,6 +100,30 @@ export function virt(store) {
   }
 }
 
+/**
+ * Delay execution if requested by action
+ *
+ * @param store
+ */
+export function delay(store) {
+  console.log('delay-middleware');
+
+  return next => action => {
+    if (action.type === 'DELAY_ACTION') {
+      window.setTimeout(() => {
+        console.log(`----------Dispatching delayed action: ${JSON.stringify(action.delayedAction)}`);
+        // store.dispatch( action.delayedAction ); // TODO: this line is intended
+        store.dispatch( getAllVms() ); // TODO: for testing only
+        // TODO: Why is this action not processed from beginning? Accorging to console.log messages, only the vms reducer is called
+      }, 1000); // TODO: read the delay timeout from stateconfig
+    }
+
+    return next(action);
+  }
+
+}
+
+/*
 const dbusClients = {};
 
 export function dbus({ dispatch, getState }) {
@@ -139,6 +163,56 @@ export function dbus({ dispatch, getState }) {
           deferred.reject();
         }
       });
+
+      return deferred.promise;
+    }
+    return next(action);
+  }
+}
+*/
+export function spawn({ dispatch, getState }) {
+  console.log('spawn-middleware');
+
+  return next => action => {
+    if (action.type === 'SPAWN') {
+      console.log(`spawn-process-middleware: action: ${JSON.stringify(action)}`);
+
+      const deferred = cockpit.defer();
+      var stdout = '';
+
+      if (action.script) { // call bash script
+        const spawnArgs = [action.script];
+        console.log(`spawn script args: ${spawnArgs}`);
+
+        cockpit.script(spawnArgs)
+//          .input(action.stdin)
+          .stream(chunk => {
+            stdout += chunk;
+          })
+          .done(() => {
+            deferred.resolve(stdout)
+          })
+          .fail((ex, data) => {
+            console.error(`spawn '${action.cmd}' script error: "${JSON.stringify(ex)}", data: "${JSON.stringify(data)}"`);
+            deferred.reject({ex, data});
+          });
+      } else { // process
+        const spawnArgs = [action.cmd, ...action.args];
+        console.log(`spawn process args: ${spawnArgs}`);
+
+        cockpit.spawn(spawnArgs)
+          .input(action.stdin)
+          .stream(chunk => {
+            stdout += chunk;
+          })
+          .done(() => {
+            deferred.resolve(stdout)
+          })
+          .fail((ex, data) => {
+            console.error(`spawn '${action.cmd}' process error: "${JSON.stringify(ex)}", data: "${JSON.stringify(data)}"`);
+            deferred.reject({ex, data});
+          });
+      }
 
       return deferred.promise;
     }

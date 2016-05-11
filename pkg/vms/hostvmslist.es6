@@ -58,7 +58,7 @@ function Vm ({ vm, onShutdown }) {
             <div className="list-group-item-heading">
               <a>{vm.name}</a>
               <small>id: {vm.id}</small>
-              <small>IP: {vm.IPs}</small>
+              <small>OS: {vm.osType}</small>
               <small>FQDN: {vm.fqdn}</small>
               <small>Up for: {vm.uptime} s</small>
             </div>
