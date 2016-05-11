@@ -42,7 +42,7 @@ function getVirtProvider(store) {
       // Providers are expected to return promise as a part of initialization
       // so we can resolve only after the provider had time to properly initialize.
       store
-        .dispatch(initProvider(store))
+        .dispatch(initProvider())
         .then(() => deferred.resolve(provider))
         .catch(deferred.reject);
     }
@@ -81,7 +81,13 @@ export function virt(store) {
         const method = action.method;
         if (method in provider) {
           console.log(`virt-middleware: Calling ${provider.name}.${method}(${JSON.stringify(action)})`);
-          return store.dispatch(provider[method](action));
+
+          const nextAction = provider[method](action);
+          if (typeof nextAction === 'function') {
+            return nextAction(store.dispatch, store.getState);
+          }
+
+          return store.dispatch(nextAction);
         } else {
           console.warn(`method: '${method}' is not supported by provider: '${provider.name}'`);
         }

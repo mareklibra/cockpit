@@ -7,14 +7,14 @@ import { dbus, clearVms, addVm, deleteVm, getVmDetail } from 'vms/actions';
 export default {
   name: 'machined',
 
-  INITIALIZE () {
+  INIT () {
     console.log(`${this.name}.INIT()`);
 
     return dispatch => dispatch(dbus({
       name: 'org.freedesktop.machine1',
       iface: 'org.freedesktop.machine1.Manager',
       path: '/org/freedesktop/machine1',
-      signal (event, name, args) {
+      signal: (event, name, args) => {
         switch (name) {
           case 'MachineNew':
             console.log('New machine detected: ' + JSON.stringify({ event, name, args }));
@@ -32,6 +32,8 @@ export default {
   },
 
   GET_VM_DETAIL ({ lookupId: path }) {
+    console.log(`${this.name}.GET_VM_DETAIL()`);
+
     return dispatch => dispatch(dbus({ // get dbus Machine properties
       name: 'org.freedesktop.machine1',
       iface: 'org.freedesktop.machine1.Machine',
@@ -68,6 +70,8 @@ export default {
   },
 
   SHUTDOWN_VM ({ name }) {
+    console.log(`${this.name}.SHUTDOWN_VM():`);
+
     return dbus({
       name: 'org.freedesktop.machine1',
       iface: 'org.freedesktop.machine1.Manager',

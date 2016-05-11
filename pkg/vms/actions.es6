@@ -26,11 +26,10 @@ export function shutdownVm (name) {
   }
 }
 
-export function initProvider (store) {
+export function initProvider () {
   return {
     type: 'VIRT',
-    method: 'INITIALIZE',
-    store
+    method: 'INIT'
   }
 }
 
