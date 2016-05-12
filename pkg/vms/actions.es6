@@ -75,7 +75,7 @@ function getVirtProvider(store) {
 }
 
 /**
- * Helper for delaying the execution of requested by action
+ * Helper for delaying the execution of requested action
  */
 export function delay (action, timeout = 1000) {
   return dispatch => setTimeout(() => dispatch(action), timeout);
@@ -141,19 +141,3 @@ export function deleteVm({id, name}) { // either id or name must be specified
   }
 }
 */
-// --- Spawn actions --------------------------------------------
-export function spawnProcess ({ cmd, args = [], stdin}) {
-  return {
-    type: 'SPAWN',
-    cmd,
-    args,
-    stdin
-  }
-}
-
-export function spawnScript ({ script }) {
-  return {
-    type: 'SPAWN',
-    script
-  }
-}

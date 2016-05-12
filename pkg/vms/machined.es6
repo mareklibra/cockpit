@@ -2,8 +2,9 @@
  * Provider for machined
  */
 import cockpit from 'base1/cockpit';
-import { /*dbus,*/ spawnProcess, spawnScript, clearVms, updateOrAddVm, deleteVm, getVm, getAllVms, delay } from 'vms/actions';
 import $ from 'jquery';
+import { /*dbus,*/ clearVms, updateOrAddVm, deleteVm, getVm, getAllVms, delay } from 'vms/actions';
+import { spawnScript, spawnProcess } from 'vms/services';
 
 function toMegaBytes(amount, currentUnit) {
   console.log(`toMegaBytes('${amount}', '${currentUnit}') `);
@@ -59,11 +60,11 @@ export default {
   GET_VM ({ lookupId: name }) {
     console.log(`${this.name}.GET_VM()`);
 
-    return dispatch => {dispatch(
+    return dispatch => {
         spawnProcess({
           cmd: 'virsh',
           args: ['-r', 'dumpxml', name]
-        })).then(output => { // output is xml from dumpxml
+        }).then(output => { // output is xml from dumpxml
 //          console.log(`GET_VM() output: ${output}`);
           const xmlDoc = $.parseXML( output );
 
@@ -84,13 +85,13 @@ export default {
           // TODO: domain/cpu
           // TODO: cpu, mem, disk, network usage
 
-          dispatch(spawnProcess({
-              cmd: 'virsh',
-              args: ['-r', 'domstate', name]
-            })).then(output => {
-              const state = output.trim();
-              dispatch(updateOrAddVm({name, state}));
-            });
+          spawnProcess({
+            cmd: 'virsh',
+            args: ['-r', 'domstate', name]
+          }).then(output => {
+            const state = output.trim();
+            dispatch(updateOrAddVm({name, state}));
+          });
         }
       );
     };
@@ -104,11 +105,9 @@ export default {
   GET_ALL_VMS () {
     console.log(`${this.name}.GET_ALL_VMS():`);
     return dispatch => {
-      dispatch(
-        spawnScript({
-          script: 'virsh -r list --all | awk \'$1 == "-" || $1+0 > 0 { print $2 }\''
-        })
-      ).then(
+      spawnScript({
+        script: 'virsh -r list --all | awk \'$1 == "-" || $1+0 > 0 { print $2 }\''
+      }).then(
         output => {
           let vmNames = output.trim().split(/\r?\n/);
           console.log(`GET_ALL_VMS: vmNames: ${JSON.stringify(vmNames)}`);
