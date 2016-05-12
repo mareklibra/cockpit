@@ -10,7 +10,7 @@ vms_MODULES = \
 	$(SRCDIR)/reducers.js \
 	$(SRCDIR)/middlewares.js \
 	$(SRCDIR)/services.js \
-	$(SRCDIR)/machined.js \
+	$(SRCDIR)/libvirt.js \
 	$(SRCDIR)/app.js \
 	$(SRCDIR)/hostvmslist.js \
 	$(SRCDIR)/helpers.js \

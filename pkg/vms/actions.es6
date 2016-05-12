@@ -1,5 +1,5 @@
 import cockpit from 'base1/cockpit';
-import Machined from 'vms/machined';
+import Libvirt from 'vms/libvirt';
 
 /**
  * All actions dispatchableby in the application
@@ -52,9 +52,9 @@ function getVirtProvider(store) {
     let provider = null;
     if (false /*TODO: Detect VDSM*/) {
       // TODO: dispatch/resolve VDSM provider
-    } else if (true /* TODO: detect machined */) {
-      console.log('Selecting Machined as the VIRT provider.');
-      provider = Machined;
+    } else if (true /* TODO: detect libvirt */) {
+      console.log('Selecting Libvirt as the VIRT provider.');
+      provider = Libvirt;
     }
 
     if (!provider) { //  no provider available

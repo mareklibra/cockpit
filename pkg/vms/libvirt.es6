@@ -1,5 +1,5 @@
 /*
- * Provider for machined
+ * Provider for Libvirt
  */
 import cockpit from 'base1/cockpit';
 import $ from 'jquery';
@@ -8,10 +8,10 @@ import { spawnScript, spawnProcess } from 'vms/services';
 import { toMegaBytes, isEmpty } from 'vms/helpers';
 
 export default {
-  name: 'machined',
+  name: 'LibvirtProvider',
 
   /**
-   * Register machined signal handlers
+   * Register signal handlers
    *
    * @returns {Function}
    */
