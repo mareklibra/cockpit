@@ -13,6 +13,7 @@ vms_MODULES = \
 	$(SRCDIR)/machined.js \
 	$(SRCDIR)/app.js \
 	$(SRCDIR)/hostvmslist.js \
+	$(SRCDIR)/helpers.js \
 	$(NULL)
 
 vmsimagesdir = $(vmsdir)/images

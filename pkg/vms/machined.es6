@@ -5,17 +5,7 @@ import cockpit from 'base1/cockpit';
 import $ from 'jquery';
 import { /*dbus,*/ clearVms, updateOrAddVm, deleteVm, getVm, getAllVms, delay } from 'vms/actions';
 import { spawnScript, spawnProcess } from 'vms/services';
-
-function toMegaBytes(amount, currentUnit) {
-  console.log(`toMegaBytes('${amount}', '${currentUnit}') `);
-  switch (currentUnit) {
-    case 'KiB':
-      return amount / 1024;
-    default:
-      console.error(`toMegaBytes(): unknown unit: ${currentUnit}`);
-  }
-  return amount;
-}
+import { toMegaBytes, isEmpty } from 'vms/helpers';
 
 export default {
   name: 'machined',
@@ -61,39 +51,41 @@ export default {
     console.log(`${this.name}.GET_VM()`);
 
     return dispatch => {
+      if (!isEmpty(name)) {
         spawnProcess({
           cmd: 'virsh',
           args: ['-r', 'dumpxml', name]
         }).then(output => { // output is xml from dumpxml
 //          console.log(`GET_VM() output: ${output}`);
-          const xmlDoc = $.parseXML( output );
+            const xmlDoc = $.parseXML(output);
 
-          const domainElem = xmlDoc.getElementsByTagName("domain")[0];
-          const osElem = domainElem.getElementsByTagName("os")[0]
-          const currentMemoryElem = domainElem.getElementsByTagName("currentMemory")[0]
+            const domainElem = xmlDoc.getElementsByTagName("domain")[0];
+            const osElem = domainElem.getElementsByTagName("os")[0]
+            const currentMemoryElem = domainElem.getElementsByTagName("currentMemory")[0]
 
-          const name = domainElem.getElementsByTagName("name")[0].childNodes[0].nodeValue
-          const id = domainElem.getElementsByTagName("uuid")[0].childNodes[0].nodeValue
-          const osType = osElem.getElementsByTagName("type")[0].childNodes[0].nodeValue
+            const name = domainElem.getElementsByTagName("name")[0].childNodes[0].nodeValue
+            const id = domainElem.getElementsByTagName("uuid")[0].childNodes[0].nodeValue
+            const osType = osElem.getElementsByTagName("type")[0].childNodes[0].nodeValue
 
-          const currentMemoryUnit = currentMemoryElem.getAttribute("unit")
-          const currentMemory = toMegaBytes(currentMemoryElem.childNodes[0].nodeValue, currentMemoryUnit);
+            const currentMemoryUnit = currentMemoryElem.getAttribute("unit")
+            const currentMemory = toMegaBytes(currentMemoryElem.childNodes[0].nodeValue, currentMemoryUnit);
 
-          dispatch(updateOrAddVm({name, id, osType, currentMemory}));
-          // TODO: uptime
-          // TODO: fqdn
-          // TODO: domain/cpu
-          // TODO: cpu, mem, disk, network usage
+            dispatch(updateOrAddVm({name, id, osType, currentMemory}));
+            // TODO: uptime
+            // TODO: fqdn
+            // TODO: domain/cpu
+            // TODO: cpu, mem, disk, network usage
 
-          spawnProcess({
-            cmd: 'virsh',
-            args: ['-r', 'domstate', name]
-          }).then(output => {
-            const state = output.trim();
-            dispatch(updateOrAddVm({name, state}));
-          });
-        }
-      );
+            spawnProcess({
+              cmd: 'virsh',
+              args: ['-r', 'domstate', name]
+            }).then(output => {
+              const state = output.trim();
+              dispatch(updateOrAddVm({name, state}));
+            });
+          }
+        );
+      }
     };
   },
 
@@ -112,7 +104,7 @@ export default {
           let vmNames = output.trim().split(/\r?\n/);
           console.log(`GET_ALL_VMS: vmNames: ${JSON.stringify(vmNames)}`);
 
-          vmNames.forEach((name) => dispatch(getVm(name)));
+          vmNames.forEach((name) => {dispatch(getVm(name.trim()))});
 
           // keep polling
           dispatch(delay(getAllVms()));

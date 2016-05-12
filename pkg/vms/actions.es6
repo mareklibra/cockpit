@@ -1,3 +1,6 @@
+import cockpit from 'base1/cockpit';
+import Machined from 'vms/machined';
+
 /**
  * All actions dispatchableby in the application
  */
@@ -44,7 +47,7 @@ function getVirtProvider(store) {
   } else {
     const deferred = cockpit.defer();
     console.log('Discovering provider');
-    // TODO: discover host capabilities by dispatching dbus() actions
+    // TODO: discover host capabilities
 
     let provider = null;
     if (false /*TODO: Detect VDSM*/) {
@@ -77,8 +80,9 @@ function getVirtProvider(store) {
 /**
  * Helper for delaying the execution of requested action
  */
-export function delay (action, timeout = 1000) {
-  return dispatch => setTimeout(() => dispatch(action), timeout);
+export function delay (action, timeout = 3000) {
+  console.log(`Scheduling ${timeout} ms delayed action: ${action}`);
+  return dispatch => window.setTimeout(() => dispatch(action), timeout);
 }
 
 // --- Store actions --------------------------------------------
@@ -89,7 +93,7 @@ export function setProvider (provider) {
   }
 }
 
-// TODO: call it
+// TODO: call it from UI
 export function setRefreshInterval (refreshInterval) {
   return {
     type: 'SET_REFRESH_INTERVAL',

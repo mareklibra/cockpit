@@ -1,3 +1,5 @@
+import cockpit from 'base1/cockpit';
+
 export function spawnProcess ({ cmd, args = [], stdin}) {
   const spawnArgs = [cmd, ...args];
   console.log(`spawn process args: ${spawnArgs}`);

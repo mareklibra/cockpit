@@ -1,6 +1,4 @@
-import cockpit from 'base1/cockpit';
 import { setProvider, initProvider, getAllVms } from 'vms/actions';
-import Machined from 'vms/machined';
 
 export function thunk({ dispatch, getState }) {
   console.log('thunk-middleware');
@@ -60,3 +58,4 @@ export function dbus({ dispatch, getState }) {
     return next(action);
   }
 }
+*/
