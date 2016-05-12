@@ -19,10 +19,24 @@ function NoVm () {
   )
 }
 
+// TODO: add tooltips to symbols
 function getStateIcon (state) {
   switch (state) {
     case 'running':
-    case 'up':
+      return (<span className="pficon pficon-ok"/>);
+    case 'idle':
+      return (<span className="pficon  pficon-running"/>);
+    case 'paused':
+      return (<span className="glyphicon glyphicon-pause"/>);
+    case 'shutdown':
+      return (<span className="glyphicon glyphicon-wrench"/>);
+    case 'shut off':
+      return (<span className="pficon pficon-close"/>);
+    case 'crashed':
+      return (<span className="pficon  pficon-error-circle-o"/>);
+    case 'dying':
+      return (<span className="pficon  pficon-warning-triangle-o"/>);
+    case 'pmsuspended':
       return (<span className="pficon pficon-ok"/>);
     case undefined:
       return (<div />);
@@ -43,8 +57,8 @@ function Vm ({ vm, onShutdown, onForceoff, onReboot, onForceReboot }) {
             <span className="fa fa-ellipsis-v"></span>
           </button>
           <ul className="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownKebabRight">
-              <li onClick={onReboot}><a href="#"><i className="pf pficon-restart"/> Reboot</a></li>
-              <li onClick={onForceReboot}><a href="#"><i className="pf pficon-restart"/> Force Reboot</a></li>
+              <li onClick={onReboot}><a href="#"><i className="fa fa-refresh"/> Reboot</a></li>
+              <li onClick={onForceReboot}><a href="#"><i className="fa fa-refresh"/> Force Reboot</a></li>
               <li onClick={onShutdown}><a href="#"><i className="fa fa-power-off"/> Shutdown</a></li>
               <li onClick={onForceoff}><a href="#"><i className="fa fa-power-off"/> Force Off</a></li>
           </ul>
