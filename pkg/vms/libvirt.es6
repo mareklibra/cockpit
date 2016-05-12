@@ -3,7 +3,7 @@
  */
 import cockpit from 'base1/cockpit';
 import $ from 'jquery';
-import { /*dbus,*/ clearVms, updateOrAddVm, deleteVm, getVm, getAllVms, delay } from 'vms/actions';
+import { /*dbus,*/ clearVms, updateOrAddVm, deleteVm, getVm, getAllVms, delay, noAction } from 'vms/actions';
 import { spawnScript, spawnProcess } from 'vms/services';
 import { toMegaBytes, isEmpty } from 'vms/helpers';
 
@@ -19,26 +19,26 @@ export default {
     console.log(`${this.name}.INIT()`);
 
     return {type: 'NONE'}
-/*
-    return dispatch => dispatch(dbus({
-      name: 'org.freedesktop.machine1',
-      iface: 'org.freedesktop.machine1.Manager',
-      path: '/org/freedesktop/machine1',
-      signal: (event, name, args) => {
-        switch (name) {
-          case 'MachineNew':
-            console.log('New machine detected: ' + JSON.stringify({ event, name, args }));
-            const path = args[1]; // /org/freedesktop/machine1/machine/qemu_2d6_2dmySecondVM
-//            dispatch(getVmDetail(path)); TODO: change with libvirt
-            break;
-          case 'MachineRemoved':
-            console.log('Machine removed: ' + JSON.stringify({ event, name, args }));
-            dispatch(deleteVm({ name: args[0] }));
-            break;
-          default:
-            console.error(`machined.INIT(): unhandled signal ${name}`);
-        }
-      }}));*/
+    /*
+     return dispatch => dispatch(dbus({
+     name: 'org.freedesktop.machine1',
+     iface: 'org.freedesktop.machine1.Manager',
+     path: '/org/freedesktop/machine1',
+     signal: (event, name, args) => {
+     switch (name) {
+     case 'MachineNew':
+     console.log('New machine detected: ' + JSON.stringify({ event, name, args }));
+     const path = args[1]; // /org/freedesktop/machine1/machine/qemu_2d6_2dmySecondVM
+     //            dispatch(getVmDetail(path)); TODO: change with libvirt
+     break;
+     case 'MachineRemoved':
+     console.log('Machine removed: ' + JSON.stringify({ event, name, args }));
+     dispatch(deleteVm({ name: args[0] }));
+     break;
+     default:
+     console.error(`machined.INIT(): unhandled signal ${name}`);
+     }
+     }}));*/
   },
 
   /**
@@ -104,7 +104,10 @@ export default {
           let vmNames = output.trim().split(/\r?\n/);
           console.log(`GET_ALL_VMS: vmNames: ${JSON.stringify(vmNames)}`);
 
-          vmNames.forEach((name) => {dispatch(getVm(name.trim()))});
+          // TODO: detect removed machines
+          vmNames.forEach((name) => {
+            dispatch(getVm(name.trim()))
+          });
 
           // keep polling
           dispatch(delay(getAllVms()));
@@ -113,23 +116,33 @@ export default {
     };
   },
 
-  /**
-   * Invoke shutdown on a VM.
-   *
-   * @param name
-   * @returns {*}
-   */
   SHUTDOWN_VM ({ name }) {
-    console.log(`${this.name}.SHUTDOWN_VM():`);
-    return {}
-/*TODO
-    return dbus({
-      name: 'org.freedesktop.machine1',
-      iface: 'org.freedesktop.machine1.Manager',
-      path: '/org/freedesktop/machine1',
-      method: 'TerminateMachine',
-      args: [name]
-    })*/
+    console.log(`${this.name}.SHUTDOWN_VM(${name}):`);
+    return spawnAndForget('SHUTDOWN_VM', 'shutdown', name);
+  },
+
+  FORCEOFF_VM ({ name }) {
+    console.log(`${this.name}.FORCEOFF_VM(${name}):`);
+    return spawnAndForget('FORCEOFF_VM', 'destroy', name);
+  },
+
+  REBOOT_VM ({ name }) {
+    console.log(`${this.name}.REBOOT_VM(${name}):`);
+    return spawnAndForget('REBOOT_VM', 'reboot', name);
+  },
+
+  FORCEREBOOT_VM ({ name }) {
+    console.log(`${this.name}.FORCEREBOOT_VM(${name}):`);
+    return spawnAndForget('FORCEREBOOT_VM', 'reset', name);
   }
 
-};
+}
+
+function spawnAndForget (method, arg1, arg2 ) {
+  spawnProcess({
+    cmd: 'virsh',
+    args: [arg1, arg2]
+  }).catch( (ex, data, output) => {console.error(`${method}() exception: '${ex}', data: '${data}', output: '${output}'`);});
+
+  return noAction();
+}

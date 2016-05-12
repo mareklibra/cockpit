@@ -4,7 +4,8 @@ export function spawnProcess ({ cmd, args = [], stdin}) {
   const spawnArgs = [cmd, ...args];
   console.log(`spawn process args: ${spawnArgs}`);
 
-  return spawn(cockpit.spawn(spawnArgs).input(stdin))
+  return spawn(cockpit.spawn(spawnArgs)
+    .input(stdin))
     .fail((ex, data) =>
       console.error(`spawn '${cmd}' process error: "${JSON.stringify(ex)}", data: "${JSON.stringify(data)}"`))
 }
@@ -29,7 +30,7 @@ function spawn (command) {
       deferred.resolve(stdout)
     })
     .fail((ex, data) => {
-      deferred.reject(ex, data);
+      deferred.reject(ex, data, stdout);
     });
 
   return deferred.promise;

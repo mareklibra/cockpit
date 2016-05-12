@@ -4,6 +4,9 @@ import Libvirt from 'vms/libvirt';
 /**
  * All actions dispatchableby in the application
  */
+export function noAction () {
+  return {type: '__NONE__'};
+}
 
 // --- Provider actions -----------------------------------------
 export function getAllVms () {
@@ -16,6 +19,18 @@ export function getVm (lookupId) {
 
 export function shutdownVm (name) {
   return virt('SHUTDOWN_VM', { name });
+}
+
+export function forceVmOff (name) {
+  return virt('FORCEOFF_VM', { name });
+}
+
+export function rebootVm (name) {
+  return virt('REBOOT_VM', { name });
+}
+
+export function forceRebootVm (name) {
+  return virt('FORCEREBOOT_VM', { name });
 }
 
 export function initProvider () {
@@ -47,8 +62,11 @@ function getVirtProvider(store) {
   } else {
     const deferred = cockpit.defer();
     console.log('Discovering provider');
-    // TODO: discover host capabilities
-
+    /* TODO: discover host capabilities
+     systemctl is-active vdsmd
+       active
+       unknown
+     */
     let provider = null;
     if (false /*TODO: Detect VDSM*/) {
       // TODO: dispatch/resolve VDSM provider
@@ -79,9 +97,11 @@ function getVirtProvider(store) {
 
 /**
  * Helper for delaying the execution of requested action
+ *
+ * TODO: read timeout from store
  */
 export function delay (action, timeout = 3000) {
-  console.log(`Scheduling ${timeout} ms delayed action: ${action}`);
+  console.log(`Scheduling ${timeout} ms delayed action`);
   return dispatch => window.setTimeout(() => dispatch(action), timeout);
 }
 

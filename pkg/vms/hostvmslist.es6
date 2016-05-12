@@ -1,5 +1,5 @@
 import React, { PropTypes } from "base1/react";
-import { shutdownVm } from "vms/actions";
+import { shutdownVm, forceVmOff, forceRebootVm, rebootVm } from "vms/actions";
 
 const { object, func } = PropTypes;
 
@@ -31,7 +31,7 @@ function getStateIcon (state) {
   }
 }
 
-function Vm ({ vm, onShutdown }) {
+function Vm ({ vm, onShutdown, onForceoff, onReboot, onForceReboot }) {
   const stateIcon = getStateIcon(vm.state);
 
   return (
@@ -43,7 +43,10 @@ function Vm ({ vm, onShutdown }) {
             <span className="fa fa-ellipsis-v"></span>
           </button>
           <ul className="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownKebabRight">
-              <li onClick={onShutdown}><a href="#"><span className="fa fa-power-off"/> Shutdown</a></li>
+              <li onClick={onReboot}><a href="#"><i className="pf pficon-restart"/> Reboot</a></li>
+              <li onClick={onForceReboot}><a href="#"><i className="pf pficon-restart"/> Force Reboot</a></li>
+              <li onClick={onShutdown}><a href="#"><i className="fa fa-power-off"/> Shutdown</a></li>
+              <li onClick={onForceoff}><a href="#"><i className="fa fa-power-off"/> Force Off</a></li>
           </ul>
         </div>
       </div>
@@ -60,6 +63,7 @@ function Vm ({ vm, onShutdown }) {
               <small>id: {vm.id}</small>
               <small>OS: {vm.osType}</small>
               <small>FQDN: {vm.fqdn}</small>
+              <small>FQDN: {vm.currentMemory}</small>
               <small>Up for: {vm.uptime} s</small>
             </div>
           </div>
@@ -77,7 +81,13 @@ function HostVmsList({ vms, dispatch }) {
   if (vms.length === 0) {
     rows = <NoVm />;
   } else {
-    rows = vms.map(vm => (<Vm vm={vm} onShutdown={() => dispatch(shutdownVm(vm.name))} />));
+    rows = vms.map(vm => (
+      <Vm vm={vm}
+        onReboot={() => dispatch(rebootVm(vm.name))}
+        onForceReboot={() => dispatch(forceRebootVm(vm.name))}
+        onShutdown={() => dispatch(shutdownVm(vm.name))}
+        onForceoff={() => dispatch(forceVmOff(vm.name))}/>
+    ));
   }
 
   return (
