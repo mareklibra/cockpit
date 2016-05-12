@@ -2,7 +2,7 @@
  * Provider for machined
  */
 import cockpit from 'base1/cockpit';
-import { /*dbus,*/ spawnProcess, spawnScript, clearVms, updateOrAddVm, deleteVm, getVm, getAllVms, scheduleDelayedAction } from 'vms/actions';
+import { /*dbus,*/ spawnProcess, spawnScript, clearVms, updateOrAddVm, deleteVm, getVm, getAllVms, delay } from 'vms/actions';
 import $ from 'jquery';
 
 function toMegaBytes(amount, currentUnit) {
@@ -116,7 +116,7 @@ export default {
           vmNames.forEach((name) => dispatch(getVm(name)));
 
           // keep polling
-          dispatch(scheduleDelayedAction(getAllVms()));
+          dispatch(delay(getAllVms()));
         }
       );
     };

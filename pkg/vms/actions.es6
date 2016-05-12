@@ -7,13 +7,6 @@ export function getAllVms () {
   return virt('GET_ALL_VMS');
 }
 
-export function scheduleDelayedAction (delayedAction) {
-  return {
-    type: 'DELAY_ACTION',
-    delayedAction
-  }
-}
-
 export function getVm (lookupId) {
   return virt('GET_VM', { lookupId }); // provider-specific (i.e. libvirt uses vm_name)
 }
@@ -42,6 +35,50 @@ function virt (method, action) {
   }).catch(err => {
     console.error('could not detect any virt provider');
   })
+}
+
+function getVirtProvider(store) {
+  const state = store.getState();
+  if (state.config.provider) {
+    return cockpit.resolve(state.config.provider);
+  } else {
+    const deferred = cockpit.defer();
+    console.log('Discovering provider');
+    // TODO: discover host capabilities by dispatching dbus() actions
+
+    let provider = null;
+    if (false /*TODO: Detect VDSM*/) {
+      // TODO: dispatch/resolve VDSM provider
+    } else if (true /* TODO: detect machined */) {
+      console.log('Selecting Machined as the VIRT provider.');
+      provider = Machined;
+    }
+
+    if (!provider) { //  no provider available
+      deferred.reject();
+    } else {
+      // First we set the provider to the `config` part of the store,
+      store.dispatch(setProvider(provider));
+      // and then we dispatch special 'VIRT' method to initialize it.
+      // Since the provider will have already been set in config,
+      // the virt middleware will correctly dispatch this action.
+      // Providers are expected to return promise as a part of initialization
+      // so we can resolve only after the provider had time to properly initialize.
+      store
+        .dispatch(initProvider())
+        .then(() => deferred.resolve(provider))
+        .catch(deferred.reject);
+    }
+
+    return deferred.promise;
+  }
+}
+
+/**
+ * Helper for delaying the execution of requested by action
+ */
+export function delay (action, timeout = 1000) {
+  return dispatch => setTimeout(() => dispatch(action), timeout);
 }
 
 // --- Store actions --------------------------------------------
@@ -118,43 +155,5 @@ export function spawnScript ({ script }) {
   return {
     type: 'SPAWN',
     script
-  }
-}
-
-
-function getVirtProvider(store) {
-  const state = store.getState();
-  if (state.config.provider) {
-    return cockpit.resolve(state.config.provider);
-  } else {
-    const deferred = cockpit.defer();
-    console.log('Discovering provider');
-    // TODO: discover host capabilities by dispatching dbus() actions
-
-    let provider = null;
-    if (false /*TODO: Detect VDSM*/) {
-      // TODO: dispatch/resolve VDSM provider
-    } else if (true /* TODO: detect machined */) {
-      console.log('Selecting Machined as the VIRT provider.');
-      provider = Machined;
-    }
-
-    if (!provider) { //  no provider available
-      deferred.reject();
-    } else {
-      // First we set the provider to the `config` part of the store,
-      store.dispatch(setProvider(provider));
-      // and then we dispatch special 'VIRT' method to initialize it.
-      // Since the provider will have already been set in config,
-      // the virt middleware will correctly dispatch this action.
-      // Providers are expected to return promise as a part of initialization
-      // so we can resolve only after the provider had time to properly initialize.
-      store
-        .dispatch(initProvider())
-        .then(() => deferred.resolve(provider))
-        .catch(deferred.reject);
-    }
-
-    return deferred.promise;
   }
 }

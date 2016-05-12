@@ -14,29 +14,6 @@ export function thunk({ dispatch, getState }) {
   };
 }
 
-/**
- * Delay execution if requested by action
- *
- * @param store
- */
-export function delay(store) {
-  console.log('delay-middleware');
-
-  return next => action => {
-    if (action.type === 'DELAY_ACTION') {
-      window.setTimeout(() => {
-        console.log(`----------Dispatching delayed action: ${JSON.stringify(action.delayedAction)}`);
-        // store.dispatch( action.delayedAction ); // TODO: this line is intended
-        store.dispatch( getAllVms() ); // TODO: for testing only
-        // TODO: Why is this action not processed from beginning? Accorging to console.log messages, only the vms reducer is called
-      }, 1000); // TODO: read the delay timeout from stateconfig
-    }
-
-    return next(action);
-  }
-
-}
-
 /*
 const dbusClients = {};
 

@@ -4,8 +4,6 @@ import { thunk, virt, /*dbus,*/ spawn, delay } from 'vms/middlewares';
 
 const createStoreWithMiddleware = compose(
   applyMiddleware(thunk),
-  applyMiddleware(virt),
-  applyMiddleware(delay),
   applyMiddleware(spawn)
 //  ,applyMiddleware(dbus)
 )(createStore);
