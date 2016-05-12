@@ -134,8 +134,12 @@ export default {
   FORCEREBOOT_VM ({ name }) {
     console.log(`${this.name}.FORCEREBOOT_VM(${name}):`);
     return spawnAndForget('FORCEREBOOT_VM', 'reset', name);
-  }
+  },
 
+  START_VM ({ name }) {
+    console.log(`${this.name}.START_VM(${name}):`);
+    return spawnAndForget('START_VM', 'start', name);
+  }
 }
 
 function spawnAndForget (method, arg1, arg2 ) {

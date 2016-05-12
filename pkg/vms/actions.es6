@@ -33,6 +33,10 @@ export function forceRebootVm (name) {
   return virt('FORCEREBOOT_VM', { name });
 }
 
+export function startVm (name) {
+  return virt('START_VM', { name });
+}
+
 export function initProvider () {
   return virt('INIT');
 }

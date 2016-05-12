@@ -1,5 +1,5 @@
 import React, { PropTypes } from "base1/react";
-import { shutdownVm, forceVmOff, forceRebootVm, rebootVm } from "vms/actions";
+import { shutdownVm, forceVmOff, forceRebootVm, rebootVm, startVm } from "vms/actions";
 
 const { object, func } = PropTypes;
 
@@ -20,24 +20,24 @@ function NoVm () {
 }
 
 // TODO: add tooltips to symbols
-function getStateIcon (state) {
+function getStateIcon (state, onStart) {
   switch (state) {
-    case 'running':
-      return (<span className="pficon pficon-ok"/>);
+    case 'running':// TODO: display VM screenshot if available or the ok-icon otherwise
+      return (<i className="pficon pficon-ok"/>);
     case 'idle':
-      return (<span className="pficon  pficon-running"/>);
+      return (<i className="pficon  pficon-running"/>);
     case 'paused':
-      return (<span className="glyphicon glyphicon-pause"/>);
+      return (<i className="glyphicon glyphicon-pause"/>);
     case 'shutdown':
-      return (<span className="glyphicon glyphicon-wrench"/>);
+      return (<i className="glyphicon glyphicon-wrench"/>);
     case 'shut off':
-      return (<span className="pficon pficon-close"/>);
+      return (<a> <i className="pficon-add-circle-o" onClick={onStart}/> </a>);
     case 'crashed':
-      return (<span className="pficon  pficon-error-circle-o"/>);
+      return (<i className="pficon  pficon-error-circle-o"/>);
     case 'dying':
-      return (<span className="pficon  pficon-warning-triangle-o"/>);
+      return (<i className="pficon  pficon-warning-triangle-o"/>);
     case 'pmsuspended':
-      return (<span className="pficon pficon-ok"/>);
+      return (<i className="pficon pficon-ok"/>); // TODO: paused due to powermanagement
     case undefined:
       return (<div />);
     default:
@@ -45,8 +45,8 @@ function getStateIcon (state) {
   }
 }
 
-function Vm ({ vm, onShutdown, onForceoff, onReboot, onForceReboot }) {
-  const stateIcon = getStateIcon(vm.state);
+function Vm ({ vm, onShutdown, onForceoff, onReboot, onForceReboot, onStart }) {
+  const stateIcon = getStateIcon(vm.state, onStart);
 
   return (
     <div className="list-group-item list-view-pf-stacked">
@@ -84,6 +84,7 @@ function Vm ({ vm, onShutdown, onForceoff, onReboot, onForceReboot }) {
 
           <div className="list-view-pf-additional-info">
             TBD: Usage Charts
+
           </div>
         </div>
       </div>
@@ -100,7 +101,8 @@ function HostVmsList({ vms, dispatch }) {
         onReboot={() => dispatch(rebootVm(vm.name))}
         onForceReboot={() => dispatch(forceRebootVm(vm.name))}
         onShutdown={() => dispatch(shutdownVm(vm.name))}
-        onForceoff={() => dispatch(forceVmOff(vm.name))}/>
+        onForceoff={() => dispatch(forceVmOff(vm.name))}
+        onStart={() => dispatch(startVm(vm.name))}/>
     ));
   }
 
