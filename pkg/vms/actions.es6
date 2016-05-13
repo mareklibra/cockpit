@@ -164,6 +164,18 @@ export function deleteVm({id, name}) { // either id or name must be specified
   }
 }
 
+// --- Navigation -----------------------------------------------
+export function navigate (path, replaceUrl) {
+  if (replaceUrl) {
+    cockpit.location.replace(path); // initiated internally, no need to call cockpit.location.go
+  }
+
+  return {
+    type: 'NAVIGATE',
+    path
+  }
+}
+
 // --- DBus actions ---------------------------------------------
 /*export function dbus ({ name, iface, path, method, args = [], signal}) {
   return {

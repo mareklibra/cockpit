@@ -1,5 +1,5 @@
 import React, { PropTypes } from "base1/react";
-import { shutdownVm, forceVmOff, forceRebootVm, rebootVm, startVm } from "vms/actions";
+import { shutdownVm, forceVmOff, forceRebootVm, rebootVm, startVm, navigate } from "vms/actions";
 
 const { object, func } = PropTypes;
 
@@ -45,7 +45,7 @@ function getStateIcon (state, onStart) {
   }
 }
 
-function Vm ({ vm, onShutdown, onForceoff, onReboot, onForceReboot, onStart }) {
+function Vm ({ vm, onVmClick, onShutdown, onForceoff, onReboot, onForceReboot, onStart }) {
   const stateIcon = getStateIcon(vm.state, onStart);
 
   return (
@@ -73,7 +73,7 @@ function Vm ({ vm, onShutdown, onForceoff, onReboot, onForceReboot, onStart }) {
         <div className="list-view-pf-body">
           <div className="list-view-pf-description">
             <div className="list-group-item-heading">
-              <a>{vm.name}</a>
+              <a onClick={onVmClick}>{vm.name}</a>
               <small>id: {vm.id}</small>
               <small>OS: {vm.osType}</small>
               <small>Memory: {vm.currentMemory}</small>
@@ -98,6 +98,7 @@ function HostVmsList({ vms, dispatch }) {
   } else {
     rows = vms.map(vm => (
       <Vm vm={vm}
+        onVmClick={() => dispatch(navigate(['vm', vm.name], true))}
         onReboot={() => dispatch(rebootVm(vm.name))}
         onForceReboot={() => dispatch(forceRebootVm(vm.name))}
         onShutdown={() => dispatch(shutdownVm(vm.name))}

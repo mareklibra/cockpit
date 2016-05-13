@@ -13,6 +13,7 @@ vms_MODULES = \
 	$(SRCDIR)/libvirt.js \
 	$(SRCDIR)/app.js \
 	$(SRCDIR)/hostvmslist.js \
+	$(SRCDIR)/vmdetail.js \
 	$(SRCDIR)/helpers.js \
 	$(NULL)
 

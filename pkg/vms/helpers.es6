@@ -12,3 +12,12 @@ export function toMegaBytes (amount, currentUnit) {
 export function isEmpty (str) {
   return (!str || 0 === str.length);
 }
+
+export function arrayEquals (arr1, arr2) {
+  if (arr1.length !== arr2.length) {
+    return false;
+  }
+
+  const diff = arr1.filter( (v, index) => {return v !== arr2[index]});
+  return diff.length === 0;
+}

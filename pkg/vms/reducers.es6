@@ -26,6 +26,15 @@ if (!Array.prototype.findIndex) {
 }
 // -------------------------------
 
+function navigation (state = {path: ['/']}, action) {
+  switch (action.type) {
+    case 'NAVIGATE':
+      return Object.assign({}, state, {path: action.path});
+    default:
+      return state;
+  }
+}
+
 function config (state = {provider: null, refreshInterval: 10}, action) {
   switch (action.type) {
     case 'SET_PROVIDER':
@@ -74,7 +83,9 @@ function getFirstIndexOfVm(state, field, value) {
   });
 }
 
+
 export default combineReducers({
   config,
-  vms
+  vms,
+  navigation
 });
