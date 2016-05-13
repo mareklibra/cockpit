@@ -147,6 +147,12 @@ export function updateOrAddVm ({ id, name, state, osType, fqdn, uptime, currentM
   }
 }
 
+export function deleteUnlistedVMs(vmNames) {
+  return {
+    type: 'DELETE_UNLISTED_VMS',
+    vmNames
+  }
+}
 
 export function deleteVm({id, name}) { // either id or name must be specified
   return {

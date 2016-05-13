@@ -55,6 +55,10 @@ function vms (state = [], action) {
       return state.slice(0, index)
         .concat(updatedVm)
         .concat(state.slice(index+1));
+    case 'DELETE_UNLISTED_VMS':
+      return state.filter(vm => {
+        return action.vmNames.indexOf(vm.name) >= 0;
+      });
     case 'DELETE_VM':
       index = action.id ? getFirstIndexOfVm(state, 'id', action.id) : getFirstIndexOfVm(state, 'name', action.name);
       return (index < 0) ? (state) :

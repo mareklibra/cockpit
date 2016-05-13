@@ -3,7 +3,7 @@
  */
 import cockpit from 'base1/cockpit';
 import $ from 'jquery';
-import { /*dbus,*/ clearVms, updateOrAddVm, deleteVm, getVm, getAllVms, delay, noAction } from 'vms/actions';
+import { /*dbus,*/ clearVms, updateOrAddVm, deleteVm, getVm, getAllVms, delay, noAction, deleteUnlistedVMs } from 'vms/actions';
 import { spawnScript, spawnProcess } from 'vms/services';
 import { toMegaBytes, isEmpty } from 'vms/helpers';
 
@@ -101,12 +101,19 @@ export default {
         script: 'virsh -r list --all | awk \'$1 == "-" || $1+0 > 0 { print $2 }\''
       }).then(
         output => {
-          let vmNames = output.trim().split(/\r?\n/);
+          const vmNames = output.trim().split(/\r?\n/);
+          vmNames.forEach((vmName, index) => {
+            vmNames[index] = vmName.trim();
+          });
           console.log(`GET_ALL_VMS: vmNames: ${JSON.stringify(vmNames)}`);
 
           // TODO: detect removed machines
+          // remove undefined domains
+          dispatch(deleteUnlistedVMs(vmNames));
+
+          // read VM details
           vmNames.forEach((name) => {
-            dispatch(getVm(name.trim()))
+            dispatch(getVm(name))
           });
 
           // keep polling
@@ -142,6 +149,7 @@ export default {
   }
 }
 
+// TODO: add configurable custom virsh attribs - i.e. connection URI and libvirt user/pwd
 function spawnAndForget (method, arg1, arg2 ) {
   spawnProcess({
     cmd: 'virsh',
