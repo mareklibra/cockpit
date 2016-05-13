@@ -62,6 +62,7 @@ export default {
             const domainElem = xmlDoc.getElementsByTagName("domain")[0];
             const osElem = domainElem.getElementsByTagName("os")[0]
             const currentMemoryElem = domainElem.getElementsByTagName("currentMemory")[0]
+            const vcpuElem = domainElem.getElementsByTagName("vcpu")[0]
 
             const name = domainElem.getElementsByTagName("name")[0].childNodes[0].nodeValue
             const id = domainElem.getElementsByTagName("uuid")[0].childNodes[0].nodeValue
@@ -70,19 +71,27 @@ export default {
             const currentMemoryUnit = currentMemoryElem.getAttribute("unit")
             const currentMemory = toMegaBytes(currentMemoryElem.childNodes[0].nodeValue, currentMemoryUnit);
 
-            dispatch(updateOrAddVm({name, id, osType, currentMemory}));
+            const vcpus = vcpuElem.childNodes[0].nodeValue;
+
+            dispatch(updateOrAddVm({name, id, osType, currentMemory, vcpus}));
             // TODO: uptime
-            // TODO: fqdn
-            // TODO: domain/cpu
-            // TODO: cpu, mem, disk, network usage
+            // TODO: cpu, mem, disk, network usage statistics
 
             spawnProcess({
               cmd: 'virsh',
-              args: ['-r', 'domstate', name]
+              args: ['-r', 'dominfo', name]
             }).then(output => {
-              const state = output.trim();
-              dispatch(updateOrAddVm({name, state}));
+              const lines = output.match(/[^\r\n]+/g);
+              const stateLine = lines.filter( line => {return line.startsWith('State:')});
+              const autostartLine = lines.filter( line => {return line.startsWith('Autostart:')});
+
+              const state = isEmpty(stateLine) ? undefined : stateLine.toString().substring('State:'.length).trim();
+              const autostart = isEmpty(autostartLine) ? undefined : autostartLine.toString().substring('Autostart:'.length).trim();
+              // console.log(`lines: ${lines},\nstateLine: '${stateLine}' -> '${state}', autostartLine: '${autostartLine}' -> '${autostart}'`);
+
+              dispatch(updateOrAddVm({name, state, autostart}));
             });
+
           }
         );
       }

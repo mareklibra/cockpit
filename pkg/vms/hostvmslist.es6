@@ -76,9 +76,9 @@ function Vm ({ vm, onShutdown, onForceoff, onReboot, onForceReboot, onStart }) {
               <a>{vm.name}</a>
               <small>id: {vm.id}</small>
               <small>OS: {vm.osType}</small>
-              <small>FQDN: {vm.fqdn}</small>
-              <small>FQDN: {vm.currentMemory}</small>
-              <small>Up for: {vm.uptime} s</small>
+              <small>Memory: {vm.currentMemory}</small>
+              <small>CPUs: {vm.vcpus}</small>
+              <small>Autostart: {vm.autostart}</small>
             </div>
           </div>
 

@@ -131,15 +131,17 @@ export function clearVms (vms) {
   }
 }
 
-export function updateOrAddVm ({ id, name, state, osType, fqdn, uptime, currentMemory }) {
+export function updateOrAddVm ({ id, name, state, osType, fqdn, uptime, currentMemory, vcpus, autostart }) {
   let vm = {};
   if (id !== undefined) vm.id = id;
   if (name !== undefined) vm.name = name;
   if (state !== undefined) vm.state = state;
   if (osType !== undefined) vm.osType = osType;
   if (currentMemory !== undefined) vm.currentMemory = currentMemory;
+  if (vcpus !== undefined) vm.vcpus = vcpus;
   if (fqdn !== undefined) vm.fqdn = fqdn;
   if (uptime !== undefined) vm.uptime = uptime;
+  if (autostart !== undefined) vm.autostart = autostart;
 
   return {
     type: 'UPDATE_ADD_VM',
