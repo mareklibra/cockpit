@@ -23,21 +23,21 @@ function NoVm () {
 function getStateIcon (state, onStart) {
   switch (state) {
     case 'running':// TODO: display VM screenshot if available or the ok-icon otherwise
-      return (<i className="pficon pficon-ok"/>);
+      return (<i className="pficon pficon-ok icon-2x"> </i>);
     case 'idle':
-      return (<i className="pficon  pficon-running"/>);
+      return (<i className="pficon  pficon-running icon-2x"> </i>);
     case 'paused':
-      return (<i className="glyphicon glyphicon-pause"/>);
+      return (<i className="glyphicon glyphicon-pause icon-2x"> </i>);
     case 'shutdown':
-      return (<i className="glyphicon glyphicon-wrench"/>);
+      return (<i className="glyphicon glyphicon-wrench icon-2x"> </i>);
     case 'shut off':
-      return (<a> <i className="pficon-add-circle-o" onClick={onStart}/> </a>);
+      return (<a> <i className="pficon-add-circle-o icon-2x" onClick={onStart}> </i></a>);
     case 'crashed':
-      return (<i className="pficon  pficon-error-circle-o"/>);
+      return (<i className="pficon  pficon-error-circle-o icon-2x"> </i>);
     case 'dying':
-      return (<i className="pficon  pficon-warning-triangle-o"/>);
+      return (<i className="pficon  pficon-warning-triangle-o icon-2x"> </i>);
     case 'pmsuspended':
-      return (<i className="pficon pficon-ok"/>); // TODO: paused due to powermanagement
+      return (<i className="pficon pficon-ok icon-2x"> </i>); // TODO: paused due to powermanagement
     case undefined:
       return (<div />);
     default:
