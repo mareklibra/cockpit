@@ -5,9 +5,6 @@ import { getRefreshInterval } from 'vms/selectors';
 /**
  * All actions dispatchableby in the application
  */
-export function noAction () {
-  return {type: '__NONE__'};
-}
 
 // --- Provider actions -----------------------------------------
 export function getAllVms () {
@@ -36,10 +33,6 @@ export function forceRebootVm (name) {
 
 export function startVm (name) {
   return virt('START_VM', { name });
-}
-
-export function initProvider () {
-  return virt('INIT');
 }
 
 /**
@@ -83,21 +76,18 @@ function getVirtProvider(store) {
     if (!provider) { //  no provider available
       deferred.reject();
     } else {
-      // First we set the provider to the `config` part of the store,
       store.dispatch(setProvider(provider));
-      // and then we dispatch special 'VIRT' method to initialize it.
-      // Since the provider will have already been set in config,
-      // the virt middleware will correctly dispatch this action.
-      // Providers are expected to return promise as a part of initialization
-      // so we can resolve only after the provider had time to properly initialize.
-      // Skip the initialization if provider does not define the 'init' hook.
-      if (provider.INIT) {
+
+      // Skip the initialization if provider does not define the `init` hook.
+      if (!provider.init) {
+        deferred.resolve(provider);
+      } else {
+        // Providers are expected to return promise as a part of initialization
+        // so we can resolve only after the provider had time to properly initialize.
         store
-          .dispatch(initProvider())
+          .dispatch(provider.init())
           .then(() => deferred.resolve(provider))
           .catch(deferred.reject);
-      } else {
-        deferred.resolve(provider);
       }
     }
 
@@ -163,7 +153,7 @@ export function deleteUnlistedVMs(vmNames) {
   }
 }
 
-export function deleteVm({id, name}) { // either id or name must be specified
+export function deleteVm({ id, name }) { // either id or name must be specified
   return {
     type: 'DELETE_VM',
     id,
