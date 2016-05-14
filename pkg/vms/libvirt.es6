@@ -3,43 +3,12 @@
  */
 import cockpit from 'base1/cockpit';
 import $ from 'jquery';
-import { /*dbus,*/ clearVms, updateOrAddVm, deleteVm, getVm, getAllVms, delay, noAction, deleteUnlistedVMs } from 'vms/actions';
+import { clearVms, updateOrAddVm, deleteVm, getVm, getAllVms, delay, noAction, deleteUnlistedVMs } from 'vms/actions';
 import { spawnScript, spawnProcess } from 'vms/services';
 import { toMegaBytes, isEmpty } from 'vms/helpers';
 
 export default {
-  name: 'LibvirtProvider',
-
-  /**
-   * Register signal handlers
-   *
-   * @returns {Function}
-   */
-  INIT () {
-    console.log(`${this.name}.INIT()`);
-
-    return {type: 'NONE'}
-    /*
-     return dispatch => dispatch(dbus({
-     name: 'org.freedesktop.machine1',
-     iface: 'org.freedesktop.machine1.Manager',
-     path: '/org/freedesktop/machine1',
-     signal: (event, name, args) => {
-     switch (name) {
-     case 'MachineNew':
-     console.log('New machine detected: ' + JSON.stringify({ event, name, args }));
-     const path = args[1]; // /org/freedesktop/machine1/machine/qemu_2d6_2dmySecondVM
-     //            dispatch(getVmDetail(path)); TODO: change with libvirt
-     break;
-     case 'MachineRemoved':
-     console.log('Machine removed: ' + JSON.stringify({ event, name, args }));
-     dispatch(deleteVm({ name: args[0] }));
-     break;
-     default:
-     console.error(`machined.INIT(): unhandled signal ${name}`);
-     }
-     }}));*/
-  },
+  name: 'Libvirt',
 
   /**
    * read VM properties (virsh)

@@ -1,10 +1,9 @@
 import { compose, applyMiddleware, createStore } from 'base1/redux';
 import reducer from 'vms/reducers';
-import { thunk /*, dbus */ } from 'vms/middlewares';
+import { thunk } from 'vms/middlewares';
 
 const createStoreWithMiddleware = applyMiddleware(
   thunk
-  /*, dbus */
 )(createStore);
 
 const store = createStoreWithMiddleware(reducer);

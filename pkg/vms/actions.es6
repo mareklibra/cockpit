@@ -1,5 +1,6 @@
 import cockpit from 'base1/cockpit';
 import Libvirt from 'vms/libvirt';
+import { getRefreshInterval } from 'vms/selectors';
 
 /**
  * All actions dispatchableby in the application
@@ -89,10 +90,15 @@ function getVirtProvider(store) {
       // the virt middleware will correctly dispatch this action.
       // Providers are expected to return promise as a part of initialization
       // so we can resolve only after the provider had time to properly initialize.
-      store
-        .dispatch(initProvider())
-        .then(() => deferred.resolve(provider))
-        .catch(deferred.reject);
+      // Skip the initialization if provider does not define the 'init' hook.
+      if (provider.INIT) {
+        store
+          .dispatch(initProvider())
+          .then(() => deferred.resolve(provider))
+          .catch(deferred.reject);
+      } else {
+        deferred.resolve(provider);
+      }
     }
 
     return deferred.promise;
@@ -101,12 +107,13 @@ function getVirtProvider(store) {
 
 /**
  * Helper for delaying the execution of requested action
- *
- * TODO: read timeout from store
  */
-export function delay (action, timeout = 3000) {
-  console.log(`Scheduling ${timeout} ms delayed action`);
-  return dispatch => window.setTimeout(() => dispatch(action), timeout);
+export function delay (action, timeout) {
+  return (dispatch, getState) => {
+    timeout = timeout || getRefreshInterval(getState());
+    console.log(`Scheduling ${timeout} ms delayed action`);
+    window.setTimeout(() => dispatch(action), timeout);
+  }
 }
 
 // --- Store actions --------------------------------------------
@@ -175,17 +182,3 @@ export function navigate (path, replaceUrl) {
     path
   }
 }
-
-// --- DBus actions ---------------------------------------------
-/*export function dbus ({ name, iface, path, method, args = [], signal}) {
-  return {
-    type: 'DBUS',
-    name,
-    iface,
-    path,
-    method,
-    args,
-    signal
-  }
-}
-*/

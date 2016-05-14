@@ -8,6 +8,7 @@ vms_MODULES = \
 	$(SRCDIR)/store.js \
 	$(SRCDIR)/actions.js \
 	$(SRCDIR)/reducers.js \
+	$(SRCDIR)/selectors.js \
 	$(SRCDIR)/middlewares.js \
 	$(SRCDIR)/services.js \
 	$(SRCDIR)/libvirt.js \

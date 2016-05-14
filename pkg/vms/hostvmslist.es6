@@ -122,6 +122,6 @@ function HostVmsList({ vms, dispatch }) {
 HostVmsList.propTypes = {
   vms: object.isRequired,
   dispatch: func.isRequired
-}
+};
 
 export default HostVmsList

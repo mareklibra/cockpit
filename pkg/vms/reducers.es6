@@ -1,4 +1,4 @@
-import {combineReducers} from 'base1/redux';
+import { combineReducers } from 'base1/redux';
 import cockpit from 'base1/cockpit';
 
 // --- compatibility hack for IE
@@ -35,7 +35,7 @@ function navigation (state = {path: ['/']}, action) {
   }
 }
 
-function config (state = {provider: null, refreshInterval: 10}, action) {
+function config (state = {provider: null, refreshInterval: 3000}, action) {
   switch (action.type) {
     case 'SET_PROVIDER':
       return Object.assign({}, state, {provider: action.provider});
