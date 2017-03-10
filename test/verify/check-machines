@@ -132,7 +132,7 @@ class TestMachines(MachineCase):
             b.wait_in_text("{0}-disks-{1}-capacity".format(self.vm1_id, "hdb"), "2")
 
             # Test add disk
-            m.execute("qemu-img create -f raw {0} 128M && chown qemu:qemu {0}".format(self.vm1_img3))
+            m.execute("qemu-img create -f raw {0} 128M".format(self.vm1_img3))
             m.execute("virsh attach-disk subVmTest1 {0} vdc".format(self.vm1_img3)) # attach to the virtio bus instead of ide
 
             b.wait_in_text("{0}-disks-total-value".format(self.vm1_id), "3")
