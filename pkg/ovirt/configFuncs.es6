@@ -37,7 +37,15 @@ export function readConfiguration ({ dispatch }) {
     promises.push(doReadHostname({ dispatch }));
     promises.push(doReadIpAddresses({ dispatch }));
 
-    return cockpit.all(promises);
+    return cockpit.all(promises).done(function () {
+        // If hostname was found by doReadHostname() and VIRSH_CONNECTION_URI wasn't set in CONFIG_FILE
+        // (or CONFIG_FILE wasn't created) then auto calculate the Virsh connection URI as:
+        // qemu+tls://${hostName}/system
+        if (CONFIG.hostName && MACHINES_CONFIG.Virsh && MACHINES_CONFIG.Virsh.connections &&
+                Object.getOwnPropertyNames(MACHINES_CONFIG.Virsh.connections).indexOf('remote') === -1) {
+            MACHINES_CONFIG.Virsh.connections = {'remote': { params: ['-c', `qemu+tls://${CONFIG.hostName}/system`] }};
+        }
+    });
 }
 
 /**
@@ -100,6 +108,8 @@ function doReadHostname ({ dispatch }) {
             .done(() => {
                 hostname = hostname.trim();
                 logDebug('hostname read: ', hostname);
+                CONFIG.hostName = hostname;
+
                 waitForReducerSubtreeInit(() => dispatch(setHostname(hostname)));
             })
             .fail(ex => {
